@@ -650,6 +650,375 @@
 //      -Sync
 //      -Async
 
+//Cách tạo promise
+//1. khởi tạo new Promise
+//2. Executor
+
+// var promise = new Promise(
+//     //Executor funtion này được thực thi khi gọi đến thằng new Promise
+//     function(resolve, reject) {
+//         //Logic
+//         //Thành công: gọi đến thằng resolve()
+//         //Thất bại: gọi thằng reject()
+//         // resolve([
+//         //     {
+//         //         id: 1,
+//         //         name: 'Javascript'
+//         //     }
+
+//         // ])
+//         resolve();
+//     }
+// ) ;
+
+// //Chain: tính chất chuỗi cảu promise
+
+// promise
+//     .then(function() {
+//         //Khi thằng resolve được gọi thì then được gọi
+//        console.log(1)
+//         return 1
+//     })
+//     .then(function() {
+//         //Khi thằng resolve được gọi thì then được gọi
+//         return new Promise(function(resolve) {
+//             setTimeout(function() {
+//                 resolve([1,2,3])
+//             }, 3000);
+//         })
+//     })
+//     .then(function(data) {
+//         //Khi thằng resolve được gọi thì then được gọi
+//         console.log(data)  // in ra kết quả [1,2,3]
+//     })
+//     .catch(function() {
+//         //Khi thằng reject được gọi thì catch được gọi
+//         console.log('Failure!')
+//     })
+//     .finally(function() {
+//         //Khi 1 trong 2 thằng resolve và reject được gọi thì finally được gọi
+//         console.log('Done!')
+//     })
+
+// function sleep(ms) {
+//     return new Promise ((resolve) => {
+//         setTimeout(resolve, ms);
+//     });
+// };
+
+// sleep(1000)
+//     .then(()=>{
+//         console.log(1);
+//         return sleep(1000)
+//     })
+//     .then(()=>{
+//         console.log(2);
+//         return sleep(1000)
+//     })
+//     .then(()=>{
+//         console.log(3);
+//         return sleep(1000)
+//     })
 
 
- 
+// function notHell(value) {
+//     return new Promise(function (resolve) {
+//         resolve(value);
+//     });
+// }
+
+// notHell(3)
+//     .then(function (value) {
+//         return value + 1;
+//     })
+//     .then(function (value) {
+//         return value + 1;
+//     })
+//     .then(function (value) {
+//         return value + 1;
+//     })
+//     .then(function (value) {
+//         console.log(value + 1);
+//     });
+
+// //tạo nhanh promise
+// var promise = Promise.reject('Error!');
+
+// promise
+//     .then(function(result) {
+//         console.log('result: ', result);
+//     })
+//     .catch(function(err) {
+//         console.log('err: ', err);
+//     })
+
+// var promise1 = new Promise(function(resolve) {
+//     setTimeout(function() {
+//         resolve([1]);
+//     },2000);
+// });
+
+// var promise2 = new Promise(function(resolve) {
+//     setTimeout(function() {
+//         resolve([2, 3]);
+//     },5000);
+// });
+
+// Promise.all([promise1, promise2])
+//     .then(function(result) {
+//         var result1 = result[0];
+//         var result2 = result[1];
+
+//         console.log(result1.concat(result2)) 
+//     })
+//     //Nếu trong này có 1 promise bị reject thì sẽ không care và vào .catch luôn
+//     .catch(function(errer) {
+//         console.log(error)
+//     })
+
+
+// var users = [
+//     {
+//         id: 1,
+//         name: 'Kien Dam'
+//     },
+//     {
+//         id: 2,
+//         name: 'Son Dang'
+//     },
+//     {
+//         id: 3,
+//         name: 'TruongTV'
+//     },
+// ];
+
+// var comments = [
+//     {
+//         id: 1,
+//         user_id: 1,
+//         comment: 'Anh oi ^^'
+//     },
+//     {
+//         id: 2,
+//         user_id: 2,
+//         comment: 'oi!!!'
+//     },
+// ];
+
+// 1. Lấy comments
+// 2. Từ comments lấy ra user_id, từ user_id lấy ra user tương ứng
+
+
+//Fake API
+// function getComments() {
+//     return new Promise((resolve) => {
+//         setTimeout(function() {
+//             resolve(comments);
+//         },1000)
+//     })
+// }
+
+// getComments()
+//     .then(function(comments) {
+//         var userIDs = comments.map(function(comment) {
+//             return comment.user_id;
+//         });
+
+//         console.log(userIDs)
+//     })
+
+// var promise1 = new Promise((resolve, reject) => {
+//     setTimeout(function() {
+//         console.log(1);
+//     },5000);
+//     resolve();
+// })
+
+// var promise2 = new Promise((resolve, reject) => {
+//     setTimeout(function() {
+//         console.log(2);
+//     },2000);
+//     resolve();
+// })
+
+// var SendAsync = async() => {       
+//     await promise1;   
+//     await promise2;
+// }
+
+// SendAsync();
+
+// // Async/await
+
+// function promise1() {
+//     return new Promise((resolve, reject) => {
+//       setTimeout(() => {
+//         resolve(1);
+//       }, 5000);
+//     });
+//   }
+
+// function promise2() {
+//     return new Promise((resolve, reject) => {
+//       setTimeout(() => {
+//         resolve(2);
+//       }, 1000);
+//     });
+//   }
+  
+//   // Hàm async sử dụng await để chờ dữ liệu
+//   async function getData() {
+//     try{
+//         const data1 = await promise1(); // Chờ data1 hoàn thành
+//         console.log(data1);
+//         const data2 = await promise2() // Chờ data2 hoàn thành
+//         console.log(data2);
+//     }catch(err){
+//         console.log({err}); //nếu Promise có lỗi thì thực hiện đoạn code này
+//     }
+//   }
+  
+//   // Gọi hàm
+//   getData();
+  
+// var postApi = 'https://jsonplaceholder.typicode.com/posts'
+
+// fetch(postApi)
+//     .then(function(respone) {
+//         return respone.json();
+//         //JSON.parse: JSON -> Javascript type
+//     })
+//     .then(function(posts) {
+//         var htmls = posts.map(function(post) {
+//             return `<li>
+//             <h2> ${post.title} </h2> 
+//             <p> ${post.body} </p>
+//             </li>`
+//         });
+//         var html = htmls.join('');
+//         document.getElementById('post-block').innerHTML = html;
+//     })
+//     .catch(function(err) {
+//         alert('Lỗi');
+//     })
+
+// class Course {
+//     constructor(name, price) {
+//         this.name = name;
+//         this.price = price;
+//     }
+
+//     getName() {
+//         return this.name;
+//     }
+
+//     getPrice() {
+//         return this.price
+//     }
+
+// }
+
+// function logger(log, type = 'log') {
+    
+//     consoleư[type](log)
+// }
+
+// var array = ['Javascript', 'PHP', 'Ruby'];
+
+// var [a, b, ...rest] = array; //...rest là 1 mảng các phần tử còn lại ngoài phần tử a
+
+// console.log(a, b);
+
+// console.log(rest);
+
+// var coures = {
+//     name: 'Java',
+//     price: 1000,
+//     children: {
+//         name: 'NodeJS'
+//     }
+// };
+
+// var { name: parentName, price, children: { name } } = coures;
+
+// console.log(parentName, name)
+
+// function logger(...params) {
+//     console.log(params)
+// }
+
+// logger(1,2,3,4,5,6,7,8,9)
+
+// var array1 = ['Javascript', 'PHP', 'Ruby'];
+
+// var array2 = ['ReactJS', 'Dart'];
+
+// var array3 = [...array2, ...array1]
+
+// console.log(array3)
+
+// function highlight(...rest) {
+//     console.log(rest);
+// }
+
+// var brand = 'F8';
+// var course = 'Javascript'
+
+// highlight`Học lập trình ${course} tại ${brand}`;
+
+
+//Module Import/Ẽport
+
+// import logger from "./logger.js";
+
+// const user = {
+//     name: 'Alice',
+//     greet: function() {
+//       return 'Hello!';
+//     }
+//   };
+//   console.log(user?.greet()); // "Hello!"
+//   console.log(user?.sayHi()); // undifined
+
+const Ajv = require ('ajv');
+const winston = require('winston');
+
+// Cấu hình logger sử dụng winston
+const logger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  ],
+});
+
+// Khởi tạo Ajv với logger
+const ajv = new Ajv({ logger });
+
+// Định nghĩa schema
+const schema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    age: { type: "number" }
+  },
+  required: ["name", "age"],
+  additionalProperties: false
+};
+
+// Dữ liệu cần xác thực
+const data = {
+  name: "John",
+  age: "twenty" // Lỗi: 'age' phải là số
+};
+
+// Xác thực dữ liệu
+const validate = ajv.compile(schema);
+const valid = validate(data);
+
+if (!valid) {
+  logger.error("Validation failed:", validate.errors);
+} else {
+  logger.info("Validation passed!");
+}
