@@ -70,7 +70,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { validateData } from 'src/components/Validator.js'
+import { validateData } from 'src/components/'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -101,10 +101,11 @@ const schemaBase = {
     email: {
       type: 'string',
       format: 'email', // Kiểm tra định dạng email
-      minLength: 1,
+      minLength: 1, // Không được để trống
       errorMessage: {
-        minLength: 'Email không được để trống.',
+        type: 'Email phải là một chuỗi.',
         format: 'Email không hợp lệ.',
+        minLength: 'Email không được để trống.',
       },
     },
     password: {

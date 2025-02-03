@@ -114,7 +114,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { validateData } from 'src/components/Validator.js'
+import { validateData } from 'src/components/validator.js'
 
 // Cấu trúc dữ liệu cho form
 const isPwd = ref(true)

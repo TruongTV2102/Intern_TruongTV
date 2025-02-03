@@ -69,7 +69,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useQuasar } from 'quasar'
-import { validateData } from 'src/components/Validator.js'
+import { validateData } from 'src/components/validator.js'
 
 // Quasar Notify
 const $q = useQuasar()
