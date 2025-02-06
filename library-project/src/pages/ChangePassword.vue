@@ -90,6 +90,7 @@ import { validateData } from 'src/components/validator.js'
 import { getLoginList } from 'src/utils/loginData'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
+import { changePasswordSchema } from 'src/schema/changePassword/validationSchema'
 
 // Cấu trúc dữ liệu cho form
 const isPwd = ref(true)
@@ -101,39 +102,10 @@ const formData = reactive({
   confirmnewpassword: '',
 })
 
-const schema = {
-  type: 'object',
-  properties: {
-    oldpassword: {
-      type: 'string',
-      minLength: 6, // Độ dài tối thiểu là 6 ký tự
-      errorMessage: {
-        type: 'Mật khẩu phải là một chuỗi.',
-        minLength: 'Mật khẩu phải có ít nhất 6 ký tự.',
-      },
-    },
-    newpassword: {
-      type: 'string',
-      minLength: 6, // Độ dài tối thiểu là 6 ký tự
-      errorMessage: {
-        type: 'Mật khẩu phải là một chuỗi.',
-        minLength: 'Mật khẩu phải có ít nhất 6 ký tự.',
-      },
-    },
-    confirmnewpassword: {
-      type: 'string',
-      const: { $data: '1/newpassword' }, // Phải khớp với trường password
-      errorMessage: {
-        const: 'Mật khẩu xác nhận không khớp.',
-      },
-    },
-  },
-}
-
 const validationErrors = ref({})
 
 const onSubmit = () => {
-  const { errors, isValid } = validateData(formData, schema)
+  const { errors, isValid } = validateData(formData, changePasswordSchema)
   // Cập nhật lỗi nếu không hợp lệ
   validationErrors.value = errors
 

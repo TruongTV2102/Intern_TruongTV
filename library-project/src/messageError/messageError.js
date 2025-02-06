@@ -1,0 +1,16 @@
+export const messageError = {
+  nametype: 'Tên phải là một chuỗi.',
+  nameempty: 'Tên không được để trống',
+  datetype: 'Ngày sinh phải là một chuỗi.',
+  dateformat: 'Ngày sinh không đúng định dạng (yyyy-mm-dd).',
+  dateempty: 'Ngày sinh không được để trống.',
+  phonetype: 'Số điện thoại phải là một chuỗi.',
+  phonepattern: 'Số điện thoại không hợp lệ. Chỉ chứa số và có độ dài từ 10 đến 15 ký tự.',
+  phoneempty: 'Số điện thoại không được để trống.',
+  emailtype: 'Email phải là một chuỗi.',
+  emailformat: 'Email không hợp lệ.',
+  emailempty: 'Email không được để trống.',
+  passwordtype: 'Mật khẩu phải là một chuỗi.',
+  passwordempty: 'Mật khẩu phải có ít nhất 6 ký tự.',
+  confirmpasswordconst: 'Mật khẩu xác nhận không khớp.',
+}

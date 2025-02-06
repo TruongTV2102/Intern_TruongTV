@@ -12,7 +12,7 @@ const routes = [
         component: () => import('src/pages/ProfilePage.vue'),
         meta: { requiresAuth: true },
       },
-      { path: 'lungtung', component: () => import('src/pages/LungTung.vue') },
+      // { path: 'lungtung', component: () => import('src/pages/LungTung.vue') },
       {
         path: 'changepassword',
         component: () => import('src/pages/ChangePassword.vue'),

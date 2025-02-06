@@ -3,8 +3,8 @@ import { ref } from 'vue'
 export const books = ref([
   {
     id: 1,
-    name: 'Sách A',
-    author: 'Tác giả A',
+    name: 'Human Interactions Strategist',
+    author: 'Alfredo Metz',
     genre: 'Thể loại A',
     bookcode: 'ABC',
     year: 2020,
@@ -16,8 +16,8 @@ export const books = ref([
   },
   {
     id: 2,
-    name: 'Sách B',
-    author: 'Tác giả B',
+    name: 'Central Marketing Specialist',
+    author: 'Mildred Koepp',
     genre: 'Thể loại A',
     bookcode: 'ABC',
     year: 2021,
@@ -28,8 +28,8 @@ export const books = ref([
   },
   {
     id: 3,
-    name: 'Sách C',
-    author: 'Tác giả C',
+    name: 'District Applications Technician',
+    author: 'Grace Hand',
     genre: 'Thể loại A',
     year: 2019,
     quantity: 3,
@@ -80,7 +80,7 @@ export const books = ref([
     quantity: 0,
     totalQuantity: 10,
     description: 'hihihihihihhi',
-    image: 'https://img-s-msn-com.akamaized.net/tenant/amp/entityid/AA1yoi23.img?w=768&h=434&m=6',
+    image: 'https://picsum.photos/200/300',
   },
   {
     id: 8,
@@ -91,7 +91,7 @@ export const books = ref([
     quantity: 3,
     totalQuantity: 10,
     description: 'hihihihihihhi',
-    image: 'https://i.pinimg.com/736x/e2/19/be/e219be12e828fd91b36fb5cfd47b0b30.jpg',
+    image: 'https://picsum.photos/200/300',
   },
   {
     id: 9,
@@ -102,7 +102,7 @@ export const books = ref([
     quantity: 10,
     totalQuantity: 10,
     description: 'hihihihihihhi',
-    image: 'https://img.loigiaihay.com/picture/share_img/2024/0117/img-5582.jpeg',
+    image: 'https://picsum.photos/200/300',
   },
   {
     id: 10,
@@ -113,8 +113,7 @@ export const books = ref([
     quantity: 10,
     totalQuantity: 10,
     description: 'hihihihihihhi',
-    image:
-      'https://marketplace.canva.com/EAD46HNrYBs/1/0/1003w/canva-an-%E1%BB%A7i-l%C3%A3ng-m%E1%BA%A1n-s%C3%A1ch-b%C3%ACa-naZIEWMJArU.jpg',
+    image: 'https://picsum.photos/200/300',
   },
   {
     id: 1,

@@ -82,7 +82,7 @@
       </div>
 
       <!-- Phân trang -->
-      <div class="tw-mt-4 tw-text-center">
+      <div v-if="showPagination" class="tw-mt-4 tw-text-center">
         <q-btn
           label="Trang trước"
           color="primary"
@@ -215,6 +215,9 @@ const itemsPerPage = 20
 const totalPages = computed(() => {
   return Math.ceil(filteredBooks.value.length / itemsPerPage)
 })
+
+//Tính toán xem có phải phân trang hay không
+const showPagination = computed(() => filteredBooks.value.length > 20)
 
 // Sách phân trang
 const paginatedBooks = computed(() => {

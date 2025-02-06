@@ -56,13 +56,13 @@
       <div class="tw-text-center tw-text-sm tw-flex tw-justify-between">
         <p
           class="tw-mr-4 tw-text-blue-600 hover:tw-underline tw-cursor-pointer"
-          @click="goToRegister"
+          @click="goToPage('/register')"
         >
           Register now
         </p>
         <p
           class="tw-text-blue-600 hover:tw-underline tw-cursor-pointer"
-          @click="goToForgotPassword"
+          @click="goToPage('/forgorpassword')"
         >
           Forgot password?
         </p>
@@ -77,7 +77,7 @@ import { toast } from 'src/plugins/toast'
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getLoginList, initLoginList, setCurrentUser } from 'src/utils/loginData.js'
-
+import { loginSchema } from 'src/schema/login/validationSchema'
 const router = useRouter()
 const isPwd = ref(true)
 const rememberMe = ref(false)
@@ -90,38 +90,9 @@ const formData = reactive({
 
 const validationErrors = ref({})
 
-onMounted(() => {
-  initLoginList()
-})
-
-// Kiểm tra lỗi cơ bản
-const schemaLogin = {
-  type: 'object',
-  properties: {
-    email: {
-      type: 'string',
-      format: 'email', // Kiểm tra định dạng email
-      minLength: 1, // Không được để trống
-      errorMessage: {
-        type: 'Email phải là một chuỗi.',
-        format: 'Email không hợp lệ.',
-        minLength: 'Email không được để trống.',
-      },
-    },
-    password: {
-      type: 'string',
-      minLength: 6,
-      errorMessage: {
-        minLength: 'Mật khẩu phải có ít nhất 6 ký tự.',
-      },
-    },
-  },
-  additionalProperties: false,
-}
-
 // Hàm xử lý sự kiện submit
 const onSubmit = () => {
-  const { errors, isValid } = validateData(formData, schemaLogin)
+  const { errors, isValid } = validateData(formData, loginSchema)
   validationErrors.value = errors
 
   if (isValid) {
@@ -139,6 +110,11 @@ const onSubmit = () => {
   }
 }
 
-const goToRegister = () => router.push('/register')
-const goToForgotPassword = () => router.push('/forgotpassword')
+const goToPage = (path) => {
+  router.push(path)
+}
+
+onMounted(() => {
+  initLoginList()
+})
 </script>

@@ -117,6 +117,7 @@ import { reactive, ref } from 'vue'
 import { validateData } from 'src/components/validator.js'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
+import { registerSchema } from 'src/schema/register/validationSchema.js'
 
 // Cấu trúc dữ liệu cho form
 const isPwd = ref(true)
@@ -133,77 +134,14 @@ const formData = reactive({
 
 const validationErrors = ref({})
 
-// Định nghĩa schema để kiểm tra
-const schema = {
-  type: 'object',
-  properties: {
-    name: {
-      type: 'string',
-      minLength: 1, // Không được để trống
-      errorMessage: {
-        type: 'Tên phải là một chuỗi.',
-        minLength: 'Tên không được để trống.',
-      },
-    },
-    date: {
-      type: 'string',
-      format: 'date', // Kiểm tra định dạng ngày
-      minLength: 1, // Không được để trống
-      errorMessage: {
-        type: 'Ngày sinh phải là một chuỗi.',
-        format: 'Ngày sinh không đúng định dạng (yyyy-mm-dd).',
-        minLength: 'Ngày sinh không được để trống.',
-      },
-    },
-    phone: {
-      type: 'string',
-      pattern: '^[0-9]{10,11}$', // Chỉ cho phép số, độ dài từ 10-15 ký tự
-      minLength: 1, // Không được để trống
-      errorMessage: {
-        type: 'Số điện thoại phải là một chuỗi.',
-        pattern: 'Số điện thoại không hợp lệ. Chỉ chứa số và có độ dài từ 10 đến 15 ký tự.',
-        minLength: 'Số điện thoại không được để trống.',
-      },
-    },
-    email: {
-      type: 'string',
-      format: 'email', // Kiểm tra định dạng email
-      minLength: 1, // Không được để trống
-      errorMessage: {
-        type: 'Email phải là một chuỗi.',
-        format: 'Email không hợp lệ.',
-        minLength: 'Email không được để trống.',
-      },
-    },
-    password: {
-      type: 'string',
-      minLength: 6, // Độ dài tối thiểu là 6 ký tự
-      errorMessage: {
-        type: 'Mật khẩu phải là một chuỗi.',
-        minLength: 'Mật khẩu phải có ít nhất 6 ký tự.',
-      },
-    },
-    confirmpassword: {
-      type: 'string',
-      const: { $data: '1/password' }, // Phải khớp với trường password
-      errorMessage: {
-        const: 'Mật khẩu xác nhận không khớp.',
-      },
-    },
-  },
-}
-
 // Hàm xử lý khi submit form
 const onSubmit = () => {
-  const { errors, isValid } = validateData(formData, schema)
+  const { errors, isValid } = validateData(formData, registerSchema)
   // Cập nhật lỗi nếu không hợp lệ
   validationErrors.value = errors
   if (isValid) {
-    console.log('1')
     toast.info('Đăng ký thành công')
-    router.push('/')
-  } else {
-    console.log('2')
+    router.push('/login')
   }
 }
 </script>
