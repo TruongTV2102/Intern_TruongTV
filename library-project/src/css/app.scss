@@ -1,0 +1,6 @@
+// app global css in SCSS form
+@media (min-width: 600px) {
+  .q-dialog__inner--minimized > div {
+    max-width: 900px !important; /* Tăng lên 900px hoặc tùy ý */
+  }
+}
