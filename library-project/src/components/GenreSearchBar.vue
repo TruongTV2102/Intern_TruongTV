@@ -17,11 +17,22 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
-const searchQuery = ref('')
 const emit = defineEmits(['update:searchQuery'])
+const searchQuery = ref('')
+const router = useRouter()
+const route = useRoute()
 
 const emitSearch = () => {
-  emit('update:searchQuery', searchQuery.value)
+  if (route.path === '/search') {
+    emit('update:searchQuery', searchQuery.value)
+  } else {
+    if (searchQuery.value) {
+      router.push({ path: '/search', query: { search_query: searchQuery.value } })
+    } else {
+      router.push({ path: '/' }) // Quay lại trang chủ nếu không có tìm kiếm
+    }
+  }
 }
 </script>

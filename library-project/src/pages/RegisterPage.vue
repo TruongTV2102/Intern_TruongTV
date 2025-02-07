@@ -114,7 +114,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { validateData } from 'src/components/validator.js'
+import { validateData } from 'src/schema/validator.js'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { registerSchema } from 'src/schema/register/validationSchema.js'

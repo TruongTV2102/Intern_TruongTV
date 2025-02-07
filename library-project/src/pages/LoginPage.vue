@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { validateData } from 'src/components/validator'
+import { validateData } from 'src/schema/validator'
 import { toast } from 'src/plugins/toast'
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
