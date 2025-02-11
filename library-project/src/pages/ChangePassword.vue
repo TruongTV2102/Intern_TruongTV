@@ -87,7 +87,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { validateData } from 'src/schema/validator.js'
-import { getLoginList } from 'src/utils/loginData'
+import { useAuthStore } from 'src/stores/user'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { changePasswordSchema } from 'src/schema/changePassword/validationSchema'
@@ -95,6 +95,7 @@ import { changePasswordSchema } from 'src/schema/changePassword/validationSchema
 // Cấu trúc dữ liệu cho form
 const isPwd = ref(true)
 const router = useRouter()
+const authStore = useAuthStore()
 
 const formData = reactive({
   oldpassword: '',
@@ -106,21 +107,16 @@ const validationErrors = ref({})
 
 const onSubmit = () => {
   const { errors, isValid } = validateData(formData, changePasswordSchema)
-  // Cập nhật lỗi nếu không hợp lệ
   validationErrors.value = errors
 
   if (isValid) {
-    const users = getLoginList()
-    const user = users.find((u) => u.password === formData.oldpassword)
+    const isSuccess = authStore.changePassword(formData.oldpassword, formData.newpassword)
 
-    if (user) {
-      user.password = formData.newpassword
-
-      localStorage.setItem('loginList', JSON.stringify(users))
+    if (isSuccess) {
       toast.info('Đổi mật khẩu thành công!')
       router.push('/')
     } else {
-      toast.error('Mật khẩu không đúng!!!')
+      toast.error('Mật khẩu cũ không đúng!')
     }
   }
 }

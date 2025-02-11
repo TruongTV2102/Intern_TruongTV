@@ -74,13 +74,17 @@
 <script setup>
 import { validateData } from 'src/schema/validator'
 import { toast } from 'src/plugins/toast'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getLoginList, initLoginList, setCurrentUser } from 'src/utils/loginData.js'
+// import { getLoginList, initLoginList, setCurrentUser } from 'src/utils/loginData.js'
 import { loginSchema } from 'src/schema/login/validationSchema'
+import { useAuthStore } from 'src/stores/user'
+
 const router = useRouter()
 const isPwd = ref(true)
 const rememberMe = ref(false)
+const authStore = useAuthStore()
+authStore.initLoginList()
 
 // Biến reactive để chứa form và lỗi
 const formData = reactive({
@@ -96,12 +100,8 @@ const onSubmit = () => {
   validationErrors.value = errors
 
   if (isValid) {
-    const loginList = getLoginList()
-    const user = loginList.find(
-      (item) => item.email === formData.email && item.password === formData.password,
-    )
+    const user = authStore.loginUser(formData.email, formData.password)
     if (user) {
-      setCurrentUser(user)
       toast.info('Đăng nhập thành công!')
       router.push('/')
     } else {
@@ -114,7 +114,7 @@ const goToPage = (path) => {
   router.push(path)
 }
 
-onMounted(() => {
-  initLoginList()
-})
+// onMounted(() => {
+//   initLoginList()
+// })
 </script>

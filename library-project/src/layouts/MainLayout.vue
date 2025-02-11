@@ -12,7 +12,7 @@
         </q-toolbar-title>
 
         <q-btn-dropdown flat rounded class="tw-relative" icon="account_circle" label="Tài khoản">
-          <template v-if="isLoggedIn">
+          <template v-if="authStore.currentUser">
             <q-list separator>
               <q-item clickable v-ripple @click="goToPage('/profile')">
                 <q-item-section avatar><q-icon name="account_circle" /></q-item-section>
@@ -46,7 +46,7 @@
     </q-header>
 
     <q-drawer
-      v-if="isLoggedIn"
+      v-if="authStore.currentUser"
       show-if-above
       :breakpoint="500"
       class="tw-w-[15%]"
@@ -62,17 +62,32 @@
             <q-item-section>Trang chủ</q-item-section>
           </q-item>
 
-          <q-item v-if="userRole === 'user'" clickable v-ripple @click="goToPage('/loanstatus')">
+          <q-item
+            v-if="authStore.currentUser.role === 'user'"
+            clickable
+            v-ripple
+            @click="goToPage('/loanstatus')"
+          >
             <q-item-section avatar><q-icon name="book" /></q-item-section>
             <q-item-section>Sách đang mượn</q-item-section>
           </q-item>
 
-          <q-item v-if="userRole === 'user'" clickable v-ripple @click="goToPage('/history')">
+          <q-item
+            v-if="authStore.currentUser.role === 'user'"
+            clickable
+            v-ripple
+            @click="goToPage('/history')"
+          >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Lịch sử mượn sách</q-item-section>
           </q-item>
 
-          <q-item v-if="userRole === 'admin'" clickable v-ripple @click="goToPage('/manageusers')">
+          <q-item
+            v-if="authStore.currentUser.role === 'admin'"
+            clickable
+            v-ripple
+            @click="goToPage('/manageusers')"
+          >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Quản lý người dùng</q-item-section>
           </q-item>
@@ -87,33 +102,20 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+// import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { logoutUser, getCurrentUser } from 'src/utils/loginData'
+import { useAuthStore } from 'src/stores/user'
 
 const router = useRouter()
-// const leftDrawerOpen = ref(true)
-const user = ref(getCurrentUser())
-const isLoggedIn = computed(() => !!user.value)
-const userRole = computed(() => user.value?.role)
+
+const authStore = useAuthStore()
 
 const goToPage = (path) => {
   router.push(path)
 }
 
 const logout = () => {
-  logoutUser()
-  user.value = null
+  authStore.logoutUser()
   router.push('/login')
 }
-
-watch(
-  () => user.value,
-  (newUser) => {
-    if (!newUser) {
-      router.push('/login')
-    }
-  },
-  { immediate: true },
-)
 </script>

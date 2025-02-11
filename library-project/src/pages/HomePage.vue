@@ -144,7 +144,7 @@
 import { computed, ref } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
 import { books } from 'src/utils/booksData'
-import { getCurrentUser } from 'src/utils/loginData'
+import { useAuthStore } from 'src/stores/user'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -152,6 +152,7 @@ const expandedGenres = ref({})
 const isModalOpen = ref(false)
 const selectedBook = ref(null)
 const searchQuery = ref('')
+const authStore = useAuthStore()
 
 // Nhóm sách theo thể loại
 const groupedBooks = computed(() => {
@@ -181,10 +182,8 @@ const openModal = (book) => {
 }
 
 // Mượn sách
-const isLoggedIn = getCurrentUser()
-
 const borrowBook = () => {
-  if (!isLoggedIn) {
+  if (!authStore.currentUser) {
     router.push('/login')
   } else {
     borrowForm.value.bookName = selectedBook.value.name

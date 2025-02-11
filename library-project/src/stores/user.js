@@ -8,12 +8,6 @@ export const useAuthStore = defineStore('auth', {
     users: JSON.parse(localStorage.getItem(STORAGE_KEY)) || [],
     currentUser: JSON.parse(localStorage.getItem(USER_KEY)) || null,
   }),
-
-  getters: {
-    isAuthenticated: (state) => !!state.currentUser,
-    getUserRole: (state) => state.currentUser?.role || 'guest',
-  },
-
   actions: {
     initLoginList() {
       if (!localStorage.getItem(STORAGE_KEY)) {
@@ -59,26 +53,40 @@ export const useAuthStore = defineStore('auth', {
         this.users = defaultUsers
       }
     },
-
     loginUser(email, password) {
       const user = this.users.find((u) => u.email === email && u.password === password)
       if (user) {
-        this.currentUser = {
+        const userData = {
           email: user.email,
           name: user.name,
           avatar: user.avatar,
           role: user.role,
         }
-        localStorage.setItem(USER_KEY, JSON.stringify(this.currentUser))
-        return true
+        localStorage.setItem(USER_KEY, JSON.stringify(userData))
+        this.currentUser = userData
+        return userData
       }
-      return false
+      return null
     },
-
+    setCurrentUser(user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
+      this.currentUser = user
+    },
     logoutUser() {
-      this.currentUser = null
       localStorage.removeItem(USER_KEY)
+      this.currentUser = null
+    },
+    changePassword(oldPassword, newPassword) {
+      if (!this.currentUser) return false
+
+      const userIndex = this.users.findIndex((u) => u.email === this.currentUser.email)
+      if (userIndex === -1 || this.users[userIndex].password !== oldPassword) {
+        return false
+      }
+
+      this.users[userIndex].password = newPassword
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.users))
+      return true
     },
   },
-  persist: true, // Nếu dùng pinia-plugin-persistedstate
 })
