@@ -1,4 +1,3 @@
-<!-- src/pages/SearchResults.vue -->
 <template>
   <div class="tw-p-4">
     <GenreSearchBar v-model:searchQuery="searchQuery" />
@@ -154,26 +153,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
 import { books } from 'src/utils/booksData'
-import { getCurrentUser } from 'src/utils/loginData'
+import { getCurrentUser } from 'src/stores/userStore'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 
 const searchQuery = ref(route.query.search_query || '')
-
-onMounted(() => {
-  if (route.query.search_query) {
-    searchQuery.value = route.query.search_query
-  }
-
-  if (route.query.all_books) {
-    // Chuyển all_books từ JSON string sang đối tượng JavaScript
-    books.value = JSON.parse(route.query.all_books)
-  }
-})
 
 // Thêm state cho phân trang
 const currentPage = ref(0)

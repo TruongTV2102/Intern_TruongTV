@@ -18,17 +18,12 @@ const routes = [
         component: () => import('src/pages/ChangePassword.vue'),
         meta: { requiresAuth: true },
       },
-      // { path: 'book/:id', component: () => import('src/pages/BookDetails.vue') }, // Route chi tiết sách
     ],
   },
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },
-  // {
-  //   path: '/lungtung',
-  //   component: () => import('src/pages/LungTung.vue'),
-  // },
 ]
 
 export default routes

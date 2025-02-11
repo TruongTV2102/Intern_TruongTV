@@ -26,7 +26,13 @@ const route = useRoute()
 
 const emitSearch = () => {
   if (route.path === '/search') {
-    emit('update:searchQuery', searchQuery.value)
+    if (searchQuery.value) {
+      router.replace({ query: { ...route.query, search_query: searchQuery.value } })
+      emit('update:searchQuery', searchQuery.value)
+    } else {
+      router.replace({ query: { ...route.query, search_query: undefined } })
+      emit('update:searchQuery', '')
+    }
   } else {
     if (searchQuery.value) {
       router.push({ path: '/search', query: { search_query: searchQuery.value } })

@@ -46,7 +46,7 @@
     </q-header>
 
     <q-drawer
-      v-model="leftDrawerOpen"
+      v-if="isLoggedIn"
       show-if-above
       :breakpoint="500"
       class="tw-w-[15%]"
@@ -61,13 +61,20 @@
             <q-item-section avatar><q-icon name="home" /></q-item-section>
             <q-item-section>Trang chủ</q-item-section>
           </q-item>
-          <q-item clickable v-ripple @click="goToPage('/loanstatus')">
+
+          <q-item v-if="userRole === 'user'" clickable v-ripple @click="goToPage('/loanstatus')">
             <q-item-section avatar><q-icon name="book" /></q-item-section>
             <q-item-section>Sách đang mượn</q-item-section>
           </q-item>
-          <q-item clickable v-ripple @click="goToPage('/history')">
+
+          <q-item v-if="userRole === 'user'" clickable v-ripple @click="goToPage('/history')">
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Lịch sử mượn sách</q-item-section>
+          </q-item>
+
+          <q-item v-if="userRole === 'admin'" clickable v-ripple @click="goToPage('/manageusers')">
+            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section>Quản lý người dùng</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>
@@ -80,13 +87,15 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { logoutUser, getCurrentUser } from 'src/utils/loginData'
 
-const isLoggedIn = computed(() => !!getCurrentUser())
-const leftDrawerOpen = ref(true)
 const router = useRouter()
+// const leftDrawerOpen = ref(true)
+const user = ref(getCurrentUser())
+const isLoggedIn = computed(() => !!user.value)
+const userRole = computed(() => user.value?.role)
 
 const goToPage = (path) => {
   router.push(path)
@@ -94,6 +103,17 @@ const goToPage = (path) => {
 
 const logout = () => {
   logoutUser()
+  user.value = null
   router.push('/login')
 }
+
+watch(
+  () => user.value,
+  (newUser) => {
+    if (!newUser) {
+      router.push('/login')
+    }
+  },
+  { immediate: true },
+)
 </script>
