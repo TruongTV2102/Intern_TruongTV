@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', {
           {
             email: 'truongtv@gmail.com',
             password: '1234567',
-            name: 'Trương TV',
+            name: 'Trường TV',
             avatar:
               'https://haycafe.vn/wp-content/uploads/2021/11/Anh-avatar-dep-chat-lam-hinh-dai-dien-600x600.jpg',
             role: 'admin',

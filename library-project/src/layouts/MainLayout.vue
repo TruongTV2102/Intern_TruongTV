@@ -11,8 +11,15 @@
           </div>
         </q-toolbar-title>
 
-        <q-btn-dropdown flat rounded class="tw-relative" icon="account_circle" label="Tài khoản">
+        <q-btn-dropdown flat rounded class="tw-relative" label="Tài khoản">
           <template v-if="authStore.currentUser">
+            <div flat class="tw-m-[4px]">
+              <q-avatar size="30px">
+                <img :src="authStore.currentUser.avatar" alt="avatar" />
+              </q-avatar>
+              <span class="q-ml-xs">{{ authStore.currentUser.name }}</span>
+            </div>
+
             <q-list separator>
               <q-item clickable v-ripple @click="goToPage('/profile')">
                 <q-item-section avatar><q-icon name="account_circle" /></q-item-section>
@@ -90,6 +97,36 @@
           >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Quản lý người dùng</q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="authStore.currentUser.role === 'admin'"
+            clickable
+            v-ripple
+            @click="goToPage('/managebooks')"
+          >
+            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section>Quản lý sách</q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="authStore.currentUser.role === 'admin'"
+            clickable
+            v-ripple
+            @click="goToPage('/manageusers')"
+          >
+            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section>Yêu cầu mượn sách</q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="authStore.currentUser.role === 'admin'"
+            clickable
+            v-ripple
+            @click="goToPage('/manageusers')"
+          >
+            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section>Yêu cầu trả sách</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>

@@ -18,6 +18,16 @@ const routes = [
         component: () => import('src/pages/ChangePassword.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'managebooks',
+        component: () => import('src/pages/BookManagement.vue'),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: 'loanstatus',
+        component: () => import('src/pages/BooksonLoan.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
   {

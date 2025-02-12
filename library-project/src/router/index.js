@@ -48,6 +48,8 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // Nếu trang yêu cầu đăng nhập và người dùng chưa đăng nhập
     if (to.meta.requiresAuth && !authStore.currentUser) {
       return { path: '/login' }
+    } else if (to.meta.requiresAdmin && authStore.currentUser.role !== 'admin') {
+      return { path: '/' }
     }
   })
 

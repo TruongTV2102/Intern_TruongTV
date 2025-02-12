@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-mb-4 tw-flex tw-justify-center">
+  <div class="tw-mb-4 tw-flex tw-justify-center tw-items-center">
     <q-input
       v-model="searchQuery"
       placeholder="Tìm kiếm sách theo tên, tác giả, thể loại..."
