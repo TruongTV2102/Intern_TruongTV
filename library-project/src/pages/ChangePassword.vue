@@ -87,7 +87,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { validateData } from 'src/schema/validator.js'
-import { useAuthStore } from 'src/stores/user'
+import { useAuthStore } from 'src/stores/userStore'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { changePasswordSchema } from 'src/schema/changePassword/validationSchema'

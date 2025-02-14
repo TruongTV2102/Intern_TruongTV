@@ -74,6 +74,7 @@ export const useAuthStore = defineStore('auth', {
     },
     logoutUser() {
       localStorage.removeItem(USER_KEY)
+      localStorage.removeItem('loginlist')
       this.currentUser = null
     },
     changePassword(oldPassword, newPassword) {

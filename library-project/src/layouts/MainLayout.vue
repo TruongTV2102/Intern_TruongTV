@@ -113,7 +113,7 @@
             v-if="authStore.currentUser.role === 'admin'"
             clickable
             v-ripple
-            @click="goToPage('/manageusers')"
+            @click="goToPage('/loanrequestmanagement')"
           >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Yêu cầu mượn sách</q-item-section>
@@ -123,7 +123,7 @@
             v-if="authStore.currentUser.role === 'admin'"
             clickable
             v-ripple
-            @click="goToPage('/manageusers')"
+            @click="goToPage('/returnmanagement')"
           >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
             <q-item-section>Yêu cầu trả sách</q-item-section>
@@ -141,7 +141,7 @@
 <script setup>
 // import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from 'src/stores/user'
+import { useAuthStore } from 'src/stores/userStore'
 
 const router = useRouter()
 

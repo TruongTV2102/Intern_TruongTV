@@ -143,8 +143,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
-import { books } from 'src/utils/booksData'
-import { useAuthStore } from 'src/stores/user'
+// import { books } from 'src/utils/booksData'
+import { useAuthStore } from 'src/stores/userStore'
+import { useBookStore } from 'src/stores/bookStore'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -153,11 +154,12 @@ const isModalOpen = ref(false)
 const selectedBook = ref(null)
 const searchQuery = ref('')
 const authStore = useAuthStore()
+const bookStore = useBookStore()
 
 // Nhóm sách theo thể loại
 const groupedBooks = computed(() => {
   const groups = {}
-  books.value.forEach((book) => {
+  bookStore.books.forEach((book) => {
     if (!groups[book.genre]) {
       groups[book.genre] = []
     }
@@ -171,7 +173,7 @@ const viewMoreBooks = (genre) => {
   // Chuyển sang trang tìm kiếm và truyền danh sách sách và searchQuery
   router.push({
     path: '/search',
-    query: { search_query: genre },
+    query: { search_query: genre, search_field: 'Thể loại' },
   })
 }
 

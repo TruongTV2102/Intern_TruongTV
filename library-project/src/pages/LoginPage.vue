@@ -78,7 +78,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 // import { getLoginList, initLoginList, setCurrentUser } from 'src/utils/loginData.js'
 import { loginSchema } from 'src/schema/login/validationSchema'
-import { useAuthStore } from 'src/stores/user'
+import { useAuthStore } from 'src/stores/userStore'
 
 const router = useRouter()
 const isPwd = ref(true)

@@ -153,16 +153,29 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
-import { books } from 'src/utils/booksData'
-import { useAuthStore } from 'src/stores/user'
+import { useAuthStore } from 'src/stores/userStore'
+import { useBookStore } from 'src/stores/bookStore'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const bookStore = useBookStore()
 
 const searchQuery = ref(route.query.search_query || '')
+const searchField = ref(route.query.search_field || 'Tên sách')
+
+watch(
+  () => route.query.search_field,
+  (newVal) => {
+    if (newVal) {
+      searchField.value = newVal
+    } else {
+      searchField.value = 'Tên sách' // Giá trị mặc định
+    }
+  },
+)
 
 // Thêm state cho phân trang
 const currentPage = ref(0)
@@ -192,13 +205,21 @@ const changePage = (page) => {
 
 // Tìm kiếm sách theo tên, tác giả, thể loại và năm
 const filteredBooks = computed(() => {
-  return books.value.filter(
-    (book) =>
-      book.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      book.genre.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      book.year.toString().includes(searchQuery.value),
-  )
+  const query = searchQuery.value.toLowerCase().trim() // Chuẩn hóa chuỗi tìm kiếm (chuyển thành chữ thường và xóa khoảng trắng)
+  return bookStore.books.filter((book) => {
+    const field = searchField.value // Trường tìm kiếm được chọn
+    if (field === 'Tên sách') {
+      return book.name.toLowerCase().includes(query) // Tìm kiếm tên sách chứa chuỗi tìm kiếm
+    } else if (field === 'Tác giả') {
+      return book.author.toLowerCase().includes(query) // Tìm kiếm tác giả chứa chuỗi tìm kiếm
+    } else if (field === 'Thể loại') {
+      return book.genre.toLowerCase().includes(query) // Tìm kiếm thể loại chứa chuỗi tìm kiếm
+    } else if (field === 'Năm') {
+      return book.year.toString().includes(query) // Tìm kiếm năm chứa chuỗi tìm kiếm
+    }
+
+    return false // Trả về false nếu không khớp với bất kỳ trường nào
+  })
 })
 
 // Cập nhật ngày mượn và trả

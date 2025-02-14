@@ -25,7 +25,27 @@ const routes = [
       },
       {
         path: 'loanstatus',
-        component: () => import('src/pages/BooksonLoan.vue'),
+        component: () => import('src/pages/LoanBooks.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'history',
+        component: () => import('src/pages/BorrowHistory.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'loanrequestmanagement',
+        component: () => import('src/pages/LoanRequestManagement.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'manageusers',
+        component: () => import('src/pages/LoanRequestManagement.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'returnmanagement',
+        component: () => import('src/pages/ReturnRequestManagement.vue'),
         meta: { requiresAuth: true },
       },
     ],
