@@ -1,12 +1,24 @@
 <template>
   <q-page class="tw-p-5">
-    <q-table :rows="requests" :columns="columns" row-key="id">
+    <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Danh sách yêu cầu mượn sách</h1>
+    <q-table :rows="loanRequests" :columns="columns" row-key="id">
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <!-- Duyệt yêu cầu -->
-          <q-btn label="Duyệt" color="green" size="sm" @click="approveRequest(props.row)" />
-          <!-- Từ chối yêu cầu -->
-          <q-btn label="Từ chối" color="red" size="sm" @click="rejectRequest(props.row)" />
+          <q-btn
+            label="Duyệt"
+            color="green"
+            size="sm"
+            class="tw-mr-2"
+            @click="approveRequest(props.row)"
+            :disable="props.row.status !== 'pending'"
+          />
+          <q-btn
+            label="Từ chối"
+            color="red"
+            size="sm"
+            @click="rejectRequest(props.row)"
+            :disable="props.row.status !== 'pending'"
+          />
         </q-td>
       </template>
     </q-table>
@@ -14,29 +26,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useLoanStore } from 'src/stores/loanStore'
+import { computed } from 'vue'
 
-const requests = ref([
-  { id: 1, name: 'Nguyễn Văn A', book: 'Harry Potter', status: 'Pending', date: '2024-02-13' },
-  { id: 2, name: 'Trần Thị B', book: 'Doraemon', status: 'Approved', date: '2024-02-12' },
-  { id: 3, name: 'Lê Văn C', book: 'Sherlock Holmes', status: 'Rejected', date: '2024-02-11' },
-])
-
+const loanStore = useLoanStore()
+const loanRequests = computed(() => loanStore.loanRequests)
+console.log('Danh sách yêu cầu mượn sách:', loanRequests.value)
 const columns = [
-  { name: 'book', label: 'Tên sách', field: 'book', align: 'left' },
-  { name: 'name', label: 'Họ tên người mượn', field: 'name', align: 'left' },
-  { name: 'email', label: 'Email', field: 'email', align: 'left' },
+  { name: 'id', label: 'ID', field: (row) => row.book?.id || 'N/A', align: 'left' },
+  {
+    name: 'bookCode',
+    label: 'Mã sách',
+    field: (row) => row.book?.bookcode || 'N/A',
+    align: 'left',
+  },
+  { name: 'book', label: 'Tên sách', field: (row) => row.book?.name || 'N/A', align: 'left' },
+  { name: 'author', label: 'Tác giả', field: (row) => row.book?.author || 'N/A', align: 'left' },
+
+  { name: 'name', label: 'Họ tên người mượn', field: (row) => row.user?.name, align: 'left' },
+  { name: 'email', label: 'Email', field: (row) => row.user?.email, align: 'left' },
+  { name: 'borrowDate', label: 'Ngày mượn', field: (row) => row.borrowDate, align: 'center' },
+  { name: 'returnDate', label: 'Ngày trả', field: (row) => row.returnDate, align: 'center' },
+  { name: 'requestDate', label: 'Ngày yêu cầu', field: (row) => row.requestDate, align: 'center' },
   { name: 'status', label: 'Trạng thái', field: 'status', align: 'center' },
   { name: 'actions', label: 'Hành động', field: 'actions', align: 'center' },
 ]
 
-// // Duyệt yêu cầu
-// const approveRequest = (request) => {
+const approveRequest = (request) => {
+  loanStore.updateLoanStatus(request, 'Approved')
+}
 
-// }
-
-// // Từ chối yêu cầu
-// const rejectRequest = (request) => {
-
-// }
+const rejectRequest = (request) => {
+  loanStore.updateLoanStatus(request, 'Rejected')
+}
 </script>

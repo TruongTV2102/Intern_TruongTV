@@ -6,6 +6,7 @@
       class="tw-w-full tw-max-w-2xl tw-bg-white"
       outlined
       dense
+      ref="my-input"
       @keyup.enter="emitSearch"
     >
       <template v-slot:append>
@@ -18,14 +19,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
+const input = useTemplateRef('my-input')
 const emit = defineEmits(['update:searchQuery'])
 const searchQuery = ref('')
 const model = ref('Tên sách') // Giá trị mặc định là 'Tên sách'
 const router = useRouter()
 const route = useRoute()
+
+onMounted(() => {
+  input.value.focus()
+})
 
 const options = ['Tên sách', 'Tác giả', 'Thể loại', 'Năm']
 
@@ -66,5 +72,6 @@ const emitSearch = () => {
       router.push({ path: '/' }) // Quay lại trang chủ nếu không có tìm kiếm
     }
   }
+  searchQuery.value = ''
 }
 </script>

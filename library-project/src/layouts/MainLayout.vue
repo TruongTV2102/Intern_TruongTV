@@ -12,12 +12,12 @@
         </q-toolbar-title>
 
         <q-btn-dropdown flat rounded class="tw-relative" label="Tài khoản">
-          <template v-if="authStore.currentUser">
+          <template v-if="userStore.currentUser">
             <div flat class="tw-m-[4px]">
               <q-avatar size="30px">
-                <img :src="authStore.currentUser.avatar" alt="avatar" />
+                <img :src="userStore.currentUser.avatar" alt="avatar" />
               </q-avatar>
-              <span class="q-ml-xs">{{ authStore.currentUser.name }}</span>
+              <span class="q-ml-xs">{{ userStore.currentUser.name }}</span>
             </div>
 
             <q-list separator>
@@ -53,7 +53,7 @@
     </q-header>
 
     <q-drawer
-      v-if="authStore.currentUser"
+      v-if="userStore.currentUser"
       show-if-above
       :breakpoint="500"
       class="tw-w-[15%]"
@@ -70,7 +70,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'user'"
+            v-if="userStore.currentUser.role === 'user'"
             clickable
             v-ripple
             @click="goToPage('/loanstatus')"
@@ -80,7 +80,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'user'"
+            v-if="userStore.currentUser.role === 'user'"
             clickable
             v-ripple
             @click="goToPage('/history')"
@@ -90,7 +90,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'admin'"
+            v-if="userStore.currentUser.role === 'admin'"
             clickable
             v-ripple
             @click="goToPage('/manageusers')"
@@ -100,7 +100,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'admin'"
+            v-if="userStore.currentUser.role === 'admin'"
             clickable
             v-ripple
             @click="goToPage('/managebooks')"
@@ -110,7 +110,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'admin'"
+            v-if="userStore.currentUser.role === 'admin'"
             clickable
             v-ripple
             @click="goToPage('/loanrequestmanagement')"
@@ -120,7 +120,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.currentUser.role === 'admin'"
+            v-if="userStore.currentUser.role === 'admin'"
             clickable
             v-ripple
             @click="goToPage('/returnmanagement')"
@@ -141,18 +141,18 @@
 <script setup>
 // import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from 'src/stores/userStore'
+import { useUserStore } from 'src/stores/userStore'
 
 const router = useRouter()
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 const goToPage = (path) => {
   router.push(path)
 }
 
 const logout = () => {
-  authStore.logoutUser()
+  userStore.logoutUser()
   router.push('/login')
 }
 </script>

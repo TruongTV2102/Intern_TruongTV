@@ -1,18 +1,26 @@
 <template>
   <q-page class="tw-p-5">
-    <q-table :rows="borrowRequests" :columns="columns" row-key="id">
+    <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Quản lý yêu cầu trả sách</h1>
+    <q-table :rows="returnRequests" :columns="columns" row-key="id">
+      <!-- Cột quá hạn -->
       <template v-slot:body-cell-overdue="props">
         <q-td :props="props">
           <span v-if="calculateOverdue(props.row.returnDate).isOverdue" class="tw-text-red-500">
-            Quá hạn - Phạt {{ calculateOverdue(props.row.returnDate).fine }}đ
+            Quá hạn: {{ calculateOverdue(props.row.returnDate).overdueHours }}h - Phạt:
+            {{ calculateOverdue(props.row.returnDate).fine }}đ
           </span>
           <span v-else class="tw-text-green-500">Đúng hạn</span>
         </q-td>
       </template>
 
+      <!-- Cột hành động -->
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn label="Nhận lại sách" color="primary" @click="confirmReturn(props.row.id)" />
+          <q-btn
+            label="Nhận lại sách"
+            color="primary"
+            @click="confirmReturn(props.row.book.id, props.row.user.email)"
+          />
         </q-td>
       </template>
     </q-table>
@@ -20,62 +28,54 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useLoanStore } from 'src/stores/loanStore'
 
-const borrowRequests = ref([
-  {
-    id: 1,
-    name: 'Nguyễn Văn A',
-    book: 'Harry Potter',
-    borrowDate: '2025-02-10 14:00',
-    returnDate: '2025-02-13 20:00',
-    status: 'Pending',
-  },
-  {
-    id: 2,
-    name: 'Trần Thị B',
-    book: 'Doraemon',
-    borrowDate: '2025-02-05 10:00',
-    returnDate: '2025-02-12 10:00',
-    status: 'Pending',
-  },
-])
-
+const loanStore = useLoanStore()
+const returnRequests = computed(() => loanStore.returnRequests || [])
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'center' },
-  { name: 'book', label: 'Tên sách', field: 'book', align: 'left' },
-  { name: 'name', label: 'Họ tên người mượn', field: 'name', align: 'left' },
-  { name: 'borrowDate', label: 'Ngày mượn', field: 'borrowDate', align: 'center' },
-  { name: 'returnDate', label: 'Ngày trả', field: 'returnDate', align: 'center' },
+  { name: 'id', label: 'ID', field: (row) => row.book?.id || 'N/A', align: 'left' },
+  {
+    name: 'bookCode',
+    label: 'Mã sách',
+    field: (row) => row.book?.bookcode || 'N/A',
+    align: 'left',
+  },
+  { name: 'book', label: 'Tên sách', field: (row) => row.book?.name || 'N/A', align: 'left' },
+  { name: 'author', label: 'Tác giả', field: (row) => row.book?.author || 'N/A', align: 'left' },
+
+  { name: 'name', label: 'Họ tên người mượn', field: (row) => row.user?.name, align: 'left' },
+  { name: 'email', label: 'Email', field: (row) => row.user?.email, align: 'left' },
+  { name: 'borrowDate', label: 'Ngày mượn', field: (row) => row.borrowDate, align: 'center' },
+  { name: 'returnDate', label: 'Ngày trả', field: (row) => row.returnDate, align: 'center' },
+  { name: 'requestDate', label: 'Ngày yêu cầu', field: (row) => row.requestDate, align: 'center' },
   { name: 'status', label: 'Trạng thái', field: 'status', align: 'center' },
-  { name: 'actions', label: 'Hành động', field: 'actions', align: 'center' },
   { name: 'overdue', label: 'Quá hạn', field: 'overdue', align: 'center' },
+  { name: 'actions', label: 'Hành động', field: 'actions', align: 'center' },
 ]
 
+// Tính toán quá hạn
 const calculateOverdue = (returnDate) => {
   const now = new Date()
   const dueDate = new Date(returnDate)
+  console.log(now)
+  console.log(dueDate)
 
   if (now > dueDate) {
     const diffMs = now - dueDate // Chênh lệch thời gian (ms)
-    console.log(diffMs)
-
-    const overdueHours = Math.ceil(diffMs / (1000 * 60 * 60)) // Đổi sang giờ
-    console.log(overdueHours)
+    const overdueHours = Math.ceil(diffMs / (1000 * 60 * 60)) // Chuyển sang giờ
 
     return {
       isOverdue: true,
-      fine: overdueHours * 500,
+      fine: overdueHours * 500, // 500đ mỗi giờ
+      overdueHours,
     }
   }
-  return { isOverdue: false, fine: 0 }
+  return { isOverdue: false, fine: 0, overdueHours: 0 }
 }
 
-const confirmReturn = (id) => {
-  const index = borrowRequests.value.findIndex((req) => req.id === id)
-  if (index !== -1) {
-    borrowRequests.value.splice(index, 1) // Xóa khỏi danh sách yêu cầu trả
-    console.log(`Sách ID ${id} đã được trả`)
-  }
+// Xác nhận trả sách
+const confirmReturn = (id, email) => {
+  loanStore.approveReturnRequest(id, email)
 }
 </script>

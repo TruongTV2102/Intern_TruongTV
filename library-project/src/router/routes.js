@@ -40,7 +40,7 @@ const routes = [
       },
       {
         path: 'manageusers',
-        component: () => import('src/pages/LoanRequestManagement.vue'),
+        component: () => import('src/pages/UserManagerment.vue'),
         meta: { requiresAuth: true },
       },
       {

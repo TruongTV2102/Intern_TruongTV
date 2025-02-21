@@ -6,7 +6,7 @@ import {
   createWebHashHistory,
 } from 'vue-router'
 import routes from './routes'
-import { useAuthStore } from 'src/stores/userStore'
+import { useUserStore } from 'src/stores/userStore'
 
 /*
  * If not building with SSR mode, you can
@@ -35,20 +35,20 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   })
 
   Router.beforeEach((to) => {
-    const authStore = useAuthStore()
+    const userStore = useUserStore()
 
     // Nếu người dùng đã đăng nhập, không cho truy cập các trang login và register
     if (
-      authStore.currentUser &&
+      userStore.currentUser &&
       (to.path === '/login' || to.path === '/register' || to.path === '/forgotpassword')
     ) {
       return { path: '/' } // Chuyển hướng về trang chủ
     }
 
     // Nếu trang yêu cầu đăng nhập và người dùng chưa đăng nhập
-    if (to.meta.requiresAuth && !authStore.currentUser) {
+    if (to.meta.requiresAuth && !userStore.currentUser) {
       return { path: '/login' }
-    } else if (to.meta.requiresAdmin && authStore.currentUser.role !== 'admin') {
+    } else if (to.meta.requiresAdmin && userStore.currentUser.role !== 'admin') {
       return { path: '/' }
     }
   })
