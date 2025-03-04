@@ -4,6 +4,7 @@ import ajvErrors from "ajv-errors";
 import fastifyCors from "@fastify/cors";
 import bookRoutes from "./bookmanager/index.js";
 import loginRoutes from "./login/index.js";
+import jwt from "@fastify/jwt";
 
 const fastify = Fastify({ logger: true });
 
@@ -13,6 +14,9 @@ ajvErrors(ajv); // Kích hoạt ajv-errors
 fastify.setValidatorCompiler(({ schema }) => {
   return ajv.compile(schema);
 });
+
+// Đăng ký plugin JWT
+fastify.register(jwt, { secret: "supersecret" });
 
 fastify.register(fastifyCors, {
   origin: "http://localhost:9000",

@@ -76,12 +76,15 @@ import { validateData } from 'src/schema/validator'
 import { toast } from 'src/plugins/toast'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+// import { useUserStore } from 'src/stores/userStore'
 import { loginSchema } from 'src/schema/login/validationSchema'
-import axios from 'axios'
+import { useAuthStore } from 'src/stores/auth'
 
 const router = useRouter()
 const isPwd = ref(true)
 const rememberMe = ref(false)
+// const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const formData = reactive({
   email: '',
@@ -97,11 +100,7 @@ const onSubmit = async () => {
 
   if (isValid) {
     try {
-      const response = await axios.post('http://localhost:3000/login', formData)
-
-      // 🛠 Lưu token vào localStorage
-      localStorage.setItem('token', response.data.token)
-
+      await authStore.login(formData.email, formData.password)
       toast.info('Đăng nhập thành công!')
       router.push('/')
     } catch (error) {

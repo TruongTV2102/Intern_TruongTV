@@ -1,26 +1,29 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import api from 'src/api'
-
-const message = ref('')
-
-onMounted(async () => {
-  try {
-    const response = await api.get('/')
-    message.value = response.data.message // Lấy dữ liệu từ backend
-  } catch (error) {
-    console.error('Lỗi khi gọi API:', error)
-  }
-})
-</script>
-
 <template>
   <q-page class="flex flex-center">
-    <q-card class="p-4">
-      <q-card-section>
-        <q-icon name="cloud_done" size="lg" color="green" />
-        <div class="text-h6">{{ message }}</div>
-      </q-card-section>
+    <q-card class="q-pa-md">
+      <q-input v-model="username" label="Username" />
+      <q-input v-model="password" label="Password" type="password" />
+      <q-btn @click="handleLogin" label="Login" color="primary" />
     </q-card>
   </q-page>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import { useAuthStore } from 'src/stores/auth'
+import { useRouter } from 'vue-router'
+
+const username = ref('')
+const password = ref('')
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleLogin = async () => {
+  try {
+    await authStore.login(username.value, password.value)
+    router.push('/')
+  } catch (error) {
+    console.error('Login failed:', error)
+  }
+}
+</script>

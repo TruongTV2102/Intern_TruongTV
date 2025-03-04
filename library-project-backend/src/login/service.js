@@ -1,6 +1,6 @@
 import { users } from "./users.js";
 
-export const loginUser = (email, password) => {
+export const findUser = (email, password) => {
   return users.find(
     (user) => user.email === email && user.password === password
   );

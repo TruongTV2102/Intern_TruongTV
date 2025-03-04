@@ -1,74 +1,23 @@
 import { bookSchema } from "./schema.js";
 import { addBook, getBooks, updateBook, deleteBook } from "./service.js";
+import { authenticate, authorizeAdmin } from "./auth.js"; // ✅ Thêm middleware auth
 
 export default async function bookRoutes(fastify) {
   fastify.addSchema(bookSchema);
 
-  // 📌 Hook chạy khi server khởi động xong
-  fastify.addHook("onReady", async () => {
-    fastify.log.info(" Server ready");
+  // 📌 Lấy danh sách sách (ai cũng được phép)
+  fastify.get("/books", async (req, reply) => {
+    const books = await getBooks();
+    return reply.send({ books });
   });
 
-  // 📌 Hook chạy trước khi xử lý request
-  fastify.addHook("onRequest", async (req, reply) => {
-    fastify.log.info(`[REQUEST] ${req.method} - ${req.url}`);
-  });
-
-  // 📌 Hook chạy trước khi request được xử lý
-  fastify.addHook("preHandler", async (req, reply) => {
-    fastify.log.info("[PRE-HANDLER] Kiểm tra quyền hạn...");
-    // Ví dụ kiểm tra auth
-    // if (!req.headers.authorization) {
-    //   reply.status(401).send({ error: "Unauthorized" });
-    // }
-  });
-
-  // 📌 Hook chạy trước khi response được gửi đi
-  fastify.addHook("onResponse", async (req, reply) => {
-    fastify.log.info(`[ON RESPONSE] Đã xử lý xong ${req.method} - ${req.url}`);
-  });
-
-  // 📌 Hook xử lý lỗi nếu có exception
-  fastify.addHook("onError", async (req, reply, error) => {
-    fastify.log.error(`[ERROR] ${error.message}`);
-  });
-
-  // 📌 Bộ xử lý lỗi toàn cục
-  fastify.setErrorHandler((error, req, reply) => {
-    fastify.log.error(`[ERROR] ${req.method} - ${req.url}: ${error.message}`);
-
-    if (error.validation) {
-      return reply.status(400).send({
-        error: "Bad Request",
-        message: "Dữ liệu không hợp lệ",
-        details: error.validation,
-      });
-    }
-
-    if (error.statusCode === 403) {
-      return reply.status(403).send({
-        error: "Forbidden",
-        message: "Bạn không có quyền truy cập tài nguyên này",
-      });
-    }
-
-    if (error.statusCode === 404) {
-      return reply.status(404).send({
-        error: "Not Found",
-        message: "Không tìm thấy tài nguyên",
-      });
-    }
-
-    return reply.status(500).send({
-      error: "Internal Server Error",
-      message: "Có lỗi xảy ra, vui lòng thử lại sau",
-    });
-  });
-
-  // 📌 Thêm sách
+  // 📌 Thêm sách (chỉ admin)
   fastify.post(
     "/books",
-    { schema: { body: { $ref: "bookSchema" } } },
+    {
+      schema: { body: { $ref: "bookSchema" } },
+      preHandler: [authenticate, authorizeAdmin],
+    }, // ✅ Kiểm tra quyền
     async (req, reply) => {
       const newBook = await addBook(req.body);
       return reply
@@ -77,16 +26,13 @@ export default async function bookRoutes(fastify) {
     }
   );
 
-  // 📌 Lấy danh sách sách
-  fastify.get("/books", async (req, reply) => {
-    const books = await getBooks();
-    return reply.send({ books });
-  });
-
-  // 📌 Cập nhật sách
+  // 📌 Cập nhật sách (chỉ admin)
   fastify.put(
     "/books/:id",
-    { schema: { body: { $ref: "bookSchema" } } },
+    {
+      schema: { body: { $ref: "bookSchema" } },
+      preHandler: [authenticate, authorizeAdmin],
+    }, // ✅ Kiểm tra quyền
     async (req, reply) => {
       const updatedBook = await updateBook(req.params.id, req.body);
       if (!updatedBook)
@@ -98,11 +44,15 @@ export default async function bookRoutes(fastify) {
     }
   );
 
-  // 📌 Xóa sách
-  fastify.delete("/books/:id", async (req, reply) => {
-    const success = await deleteBook(req.params.id);
-    if (!success)
-      return reply.status(404).send({ error: "Không tìm thấy sách" });
-    return reply.send({ message: "Sách đã được xóa" });
-  });
+  // 📌 Xóa sách (chỉ admin)
+  fastify.delete(
+    "/books/:id",
+    { preHandler: [authenticate, authorizeAdmin] }, // ✅ Kiểm tra quyền
+    async (req, reply) => {
+      const success = await deleteBook(req.params.id);
+      if (!success)
+        return reply.status(404).send({ error: "Không tìm thấy sách" });
+      return reply.send({ message: "Sách đã được xóa" });
+    }
+  );
 }
