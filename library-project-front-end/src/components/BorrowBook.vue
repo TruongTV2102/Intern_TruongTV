@@ -124,7 +124,6 @@ const submitBorrowForm = () => {
 
   // Lưu vào loanStore
   loanStore.addLoanRequest(loanRequest)
-  console.log(loanRequest)
 
   toast.info('Đăng ký mượn sách thành công. Đợi admin duyệt')
   emit('update:isOpen', false) // Đóng form

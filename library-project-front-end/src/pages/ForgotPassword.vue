@@ -83,7 +83,6 @@ const onSubmit = () => {
       // Cập nhật danh sách người dùng
       localStorage.setItem('loginList', JSON.stringify(users))
 
-      // Giả lập gửi email (ở đây chỉ console.log)
       console.log(`Gửi email đến ${user.email}: Mật khẩu mới của bạn là ${newPassword}`)
 
       message.value = `Mật khẩu mới đã được gửi đến email: ${user.email}`

@@ -58,8 +58,6 @@ const columns = [
 const calculateOverdue = (returnDate) => {
   const now = new Date()
   const dueDate = new Date(returnDate)
-  console.log(now)
-  console.log(dueDate)
 
   if (now > dueDate) {
     const diffMs = now - dueDate // Chênh lệch thời gian (ms)

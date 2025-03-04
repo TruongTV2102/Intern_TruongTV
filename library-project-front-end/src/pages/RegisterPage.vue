@@ -118,6 +118,7 @@ import { validateData } from 'src/schema/validator.js'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { registerSchema } from 'src/schema/register/validationSchema.js'
+import axios from 'axios'
 
 // Cấu trúc dữ liệu cho form
 const isPwd = ref(true)
@@ -135,13 +136,31 @@ const formData = reactive({
 const validationErrors = ref({})
 
 // Hàm xử lý khi submit form
-const onSubmit = () => {
+const onSubmit = async () => {
   const { errors, isValid } = validateData(formData, registerSchema)
-  // Cập nhật lỗi nếu không hợp lệ
   validationErrors.value = errors
-  if (isValid) {
+
+  if (!isValid) return
+
+  try {
+    await axios.post('http://127.0.0.1:3000/register', formData)
+
     toast.info('Đăng ký thành công')
     router.push('/login')
+  } catch (error) {
+    console.error('Lỗi đăng ký:', error) // Log lỗi chi tiết
+
+    if (error.response) {
+      console.error('Phản hồi từ server:', error.response.data) // Log phản hồi từ server
+      validationErrors.value = error.response.data
+      toast.error(error.response.data.error || 'Đăng ký thất bại')
+    } else if (error.request) {
+      console.error('Không nhận được phản hồi từ server:', error.request)
+      toast.error('Không kết nối được đến server')
+    } else {
+      console.error('Lỗi không xác định:', error.message)
+      toast.error('Lỗi không xác định')
+    }
   }
 }
 </script>

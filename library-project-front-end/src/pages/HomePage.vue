@@ -57,13 +57,14 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
 import { useUserStore } from 'src/stores/userStore'
-import { useBookStore } from 'src/stores/bookStore'
+// import { useBookStore } from 'src/stores/bookStore'
 import { useRouter } from 'vue-router'
 import BookDetail from 'src/components/BookDetail.vue'
 import BorrowBook from 'src/components/BorrowBook.vue'
+import axios from 'axios'
 
 const router = useRouter()
 const expandedGenres = ref({})
@@ -71,12 +72,31 @@ const isModalOpen = ref(false)
 const selectedBook = ref(null)
 const searchQuery = ref('')
 const userStore = useUserStore()
-const bookStore = useBookStore()
+// const bookStore = useBookStore()
+
+const books = ref([])
+
+// API - Lấy danh sách sách
+const fetchBooks = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/books', {
+      headers: {
+        'api-key': 'your-secret-key',
+        'user-id': '1', // ID hợp lệ từ danh sách users
+      },
+    })
+    books.value = res.data.data
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách sách:', error)
+  }
+}
+
+onMounted(fetchBooks)
 
 // Nhóm sách theo thể loại
 const groupedBooks = computed(() => {
   const groups = {}
-  bookStore.books.forEach((book) => {
+  books.value.forEach((book) => {
     if (!groups[book.genre]) {
       groups[book.genre] = []
     }

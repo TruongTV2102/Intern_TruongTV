@@ -54,25 +54,29 @@
       <p class="tw-text-gray-600">Không tìm thấy kết quả nào!</p>
     </div>
 
+    <!-- Popup Modal hiển thị thông tin chi tiết sách -->
     <BookDetail v-model:isOpen="isModalOpen" :book="selectedBook" @borrow="borrowBook" />
+
+    <!-- Form đăng ký mượn sách -->
     <BorrowBook v-model:isOpen="isBorrowFormOpen" :book="selectedBook" />
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
 import BookDetail from 'components/BookDetail.vue'
 import BorrowBook from 'components/BorrowBook.vue'
-import { useBookStore } from 'src/stores/bookStore'
+// import { useBookStore } from 'src/stores/bookStore'
 import { useUserStore } from 'src/stores/userStore'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 
-const bookStore = useBookStore()
+// const bookStore = useBookStore()
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
-// const searchQuery = ref('')
+const books = ref([])
 
 const currentPage = ref(0)
 const itemsPerPage = 20
@@ -89,6 +93,22 @@ watch(
     }
   },
 )
+
+const fetchBooks = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/books', {
+      headers: {
+        'api-key': 'your-secret-key',
+        'user-id': '1', // ID hợp lệ từ danh sách users
+      },
+    })
+    books.value = res.data.data
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách sách:', error)
+  }
+}
+
+onMounted(fetchBooks)
 
 const totalPages = computed(() => {
   return Math.ceil(filteredBooks.value.length / itemsPerPage)
@@ -109,8 +129,8 @@ const changePage = (page) => {
 
 // Tìm kiếm sách theo tên, tác giả, thể loại và năm
 const filteredBooks = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim() // Chuẩn hóa chuỗi tìm kiếm (chuyển thành chữ thường và xóa khoảng trắng)
-  return bookStore.books.filter((book) => {
+  const query = searchQuery.value.toLowerCase().trim() // Chuyển thành chữ thường và xóa khoảng trắng
+  return books.value.filter((book) => {
     const field = searchField.value // Trường tìm kiếm được chọn
     if (field === 'Tên sách') {
       return book.name.toLowerCase().includes(query) // Tìm kiếm tên sách chứa chuỗi tìm kiếm
@@ -142,4 +162,8 @@ const borrowBook = () => {
     isBorrowFormOpen.value = true
   }
 }
+
+watch(filteredBooks, () => {
+  currentPage.value = 0
+})
 </script>

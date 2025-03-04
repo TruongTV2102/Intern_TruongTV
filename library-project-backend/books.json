@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1741071218817",
+    "name": "12312",
+    "bookcode": "123",
+    "author": "12312",
+    "genre": "312",
+    "year": 2000,
+    "quantity": "123",
+    "totalQuantity": "12312"
+  },
+  {
+    "id": "1741073567426",
+    "name": "123",
+    "bookcode": "123",
+    "author": "12321",
+    "genre": "3123",
+    "year": 2000,
+    "quantity": "123",
+    "totalQuantity": "123"
+  },
+  {
+    "id": "1741074606510",
+    "name": "123",
+    "bookcode": "123",
+    "author": "123",
+    "genre": "123",
+    "year": 1936,
+    "quantity": "3123",
+    "totalQuantity": "123"
+  }
+]

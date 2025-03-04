@@ -31,7 +31,7 @@ import { computed } from 'vue'
 
 const loanStore = useLoanStore()
 const loanRequests = computed(() => loanStore.loanRequests)
-console.log('Danh sách yêu cầu mượn sách:', loanRequests.value)
+
 const columns = [
   { name: 'id', label: 'ID', field: (row) => row.book?.id || 'N/A', align: 'left' },
   {

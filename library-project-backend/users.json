@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Nguyen Van A",
+    "email": "test@example.com",
+    "password": "123456",
+    "confirmpassword": "123456",
+    "date": "1993-10-10",
+    "phone": "0123456789"
+  },
+  {
+    "name": "Nguyen Van A",
+    "email": "test1@example.com",
+    "password": "123456",
+    "confirmpassword": "123456",
+    "date": "1993-10-10",
+    "phone": "0123456789"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv1@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2025-03-11",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Nguyen Van A",
+    "email": "test3@example.com",
+    "password": "123456",
+    "confirmpassword": "123456",
+    "date": "1993-10-10",
+    "phone": "0123456789"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2024-08-13",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv3@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2024-08-13",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv0@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2024-03-20",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv9@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2024-03-20",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv12@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2025-02-23",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv123@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2025-02-24",
+    "phone": "0344444444"
+  },
+  {
+    "name": "Trần Văn Trường",
+    "email": "truongtv134@gmail.com",
+    "password": "1234567",
+    "confirmpassword": "1234567",
+    "date": "2025-03-12",
+    "phone": "0344444444"
+  }
+]

@@ -74,18 +74,15 @@
 <script setup>
 import { validateData } from 'src/schema/validator'
 import { toast } from 'src/plugins/toast'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginSchema } from 'src/schema/login/validationSchema'
-import { useUserStore } from 'src/stores/userStore'
+import axios from 'axios'
 
 const router = useRouter()
 const isPwd = ref(true)
 const rememberMe = ref(false)
-const userStore = useUserStore()
-userStore.initLoginList()
 
-// Biến reactive để chứa form và lỗi
 const formData = reactive({
   email: '',
   password: '',
@@ -93,18 +90,22 @@ const formData = reactive({
 
 const validationErrors = ref({})
 
-// Hàm xử lý sự kiện submit
-const onSubmit = () => {
+// 🛠 Gửi request đến backend để đăng nhập
+const onSubmit = async () => {
   const { errors, isValid } = validateData(formData, loginSchema)
   validationErrors.value = errors
 
   if (isValid) {
-    const user = userStore.loginUser(formData.email, formData.password)
-    if (user) {
+    try {
+      const response = await axios.post('http://localhost:3000/login', formData)
+
+      // 🛠 Lưu token vào localStorage
+      localStorage.setItem('token', response.data.token)
+
       toast.info('Đăng nhập thành công!')
       router.push('/')
-    } else {
-      toast.error('Tài khoản hoặc mật khẩu không đúng!')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Đăng nhập thất bại!')
     }
   }
 }
@@ -112,8 +113,4 @@ const onSubmit = () => {
 const goToPage = (path) => {
   router.push(path)
 }
-
-onMounted(() => {
-  userStore.initLoginList()
-})
 </script>

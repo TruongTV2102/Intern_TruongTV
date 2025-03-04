@@ -1,16 +1,14 @@
 <template>
   <q-page class="tw-p-5">
-    <q-form>
-      <!-- Thanh tìm kiếm -->
+    <q-form @submit.prevent="fetchBooks">
       <div class="tw-flex tw-gap-4 tw-mb-4">
         <q-input v-model="searchQuery" placeholder="Tìm sách..." class="tw-w-1/3" />
         <q-select v-model="searchField" :options="options" class="tw-w-1/4" />
-        <q-btn label="Tìm kiếm" color="primary" />
+        <q-btn label="Tìm kiếm" color="primary" type="submit" />
         <q-btn label="Thêm sách" color="green" @click="openAddBookModal" />
       </div>
     </q-form>
 
-    <!-- Bảng danh sách sách -->
     <q-table :rows="filteredBooks" :columns="columns" row-key="id" class="tw-shadow-lg">
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
@@ -22,17 +20,17 @@
 
     <!-- Modal Thêm sách -->
     <q-dialog v-model="isAddBookModalOpen">
-      <q-card class="tw-w-1/2 tw-p-4 tw-shadow-lg tw-rounded-lg">
+      <q-card class="tw-w-1/2 tw-p-4">
         <q-card-section>
           <q-input v-model="newBook.name" label="Tên sách" />
-          <q-input v-model="newBook.bookcode" label="Tên sách" />
+          <q-input v-model="newBook.bookcode" label="Mã sách" />
           <q-input v-model="newBook.author" label="Tác giả" />
           <q-input v-model="newBook.genre" label="Thể loại" />
           <q-input v-model="newBook.year" label="Năm xuất bản" type="number" />
           <q-input v-model="newBook.quantity" label="Số lượng" type="number" />
           <q-input v-model="newBook.totalQuantity" label="Tổng số lượng" type="number" />
         </q-card-section>
-        <q-card-actions align="right" class="tw-flex tw-justify-end tw-gap-2">
+        <q-card-actions align="right">
           <q-btn label="Thêm" color="green" @click="addBook" />
           <q-btn label="Hủy" flat @click="isAddBookModalOpen = false" />
         </q-card-actions>
@@ -41,19 +39,17 @@
 
     <!-- Modal Chỉnh sửa sách -->
     <q-dialog v-model="isEditBookModalOpen">
-      <q-card class="tw-w-1/2 tw-p-4 tw-shadow-lg tw-rounded-lg">
+      <q-card class="tw-w-1/2 tw-p-4">
         <q-card-section>
-          <q-input v-model="book.bookcode" label="Mã sách" />
           <q-input v-model="book.name" label="Tên sách" />
+          <q-input v-model="book.bookcode" label="Mã sách" />
           <q-input v-model="book.author" label="Tác giả" />
           <q-input v-model="book.genre" label="Thể loại" />
           <q-input v-model="book.year" label="Năm xuất bản" type="number" />
           <q-input v-model="book.quantity" label="Số lượng" type="number" />
           <q-input v-model="book.totalQuantity" label="Tổng số lượng" type="number" />
-          <q-input v-model="book.description" label="Mô tả" />
-          <q-input v-model="book.image" label="Ảnh bìa" />
         </q-card-section>
-        <q-card-actions align="right" class="tw-flex tw-justify-end tw-gap-2">
+        <q-card-actions align="right">
           <q-btn label="Lưu" color="primary" @click="saveBook" />
           <q-btn label="Hủy" flat @click="isEditBookModalOpen = false" />
         </q-card-actions>
@@ -63,19 +59,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useBookStore } from 'src/stores/bookStore'
-import { faker } from '@faker-js/faker'
-
-// Store
-const bookStore = useBookStore()
-const books = computed(() => bookStore.books)
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 
 // State
-const options = ['Tên sách', 'Tác giả', 'Thể loại', 'Năm']
+const books = ref([])
 const searchQuery = ref('')
 const searchField = ref('Tên sách')
-
 const isAddBookModalOpen = ref(false)
 const isEditBookModalOpen = ref(false)
 const book = ref({})
@@ -87,11 +77,10 @@ const newBook = ref({
   year: null,
   quantity: '',
   totalQuantity: '',
-  image: '',
 })
 
+// Cấu hình cột bảng
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'center' },
   { name: 'name', label: 'Tên sách', field: 'name', align: 'left' },
   { name: 'bookcode', label: 'Mã sách', field: 'bookcode', align: 'left' },
   { name: 'author', label: 'Tác giả', field: 'author', align: 'left' },
@@ -102,30 +91,79 @@ const columns = [
   { name: 'actions', label: 'Hành động', field: 'actions', align: 'center' },
 ]
 
-// Lọc sách theo tiêu chí
+// Lọc sách theo tiêu chí tìm kiếm
 const filteredBooks = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
-  return books.value.filter((book) => {
-    if (searchField.value === 'Tên sách') return book.name.toLowerCase().includes(query)
-    if (searchField.value === 'Tác giả') return book.author.toLowerCase().includes(query)
-    if (searchField.value === 'Thể loại') return book.genre.toLowerCase().includes(query)
-    if (searchField.value === 'Năm') return book.year.toString().includes(query)
+  return books.value.filter((b) => {
+    if (searchField.value === 'Tên sách') return b.name.toLowerCase().includes(query)
+    if (searchField.value === 'Tác giả') return b.author.toLowerCase().includes(query)
+    if (searchField.value === 'Thể loại') return b.genre.toLowerCase().includes(query)
+    if (searchField.value === 'Năm') return b.year.toString().includes(query)
     return false
   })
 })
 
-const openAddBookModal = () => (isAddBookModalOpen.value = true)
+// API - Lấy danh sách sách
+const fetchBooks = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/books')
+    books.value = res.data.books
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách sách:', error)
+  }
+}
+
+onMounted(fetchBooks)
+
+// API - Thêm sách
+const addBook = async () => {
+  try {
+    await axios.post('http://localhost:3000/books', newBook.value)
+    fetchBooks()
+    isAddBookModalOpen.value = false
+  } catch (error) {
+    console.error('Lỗi khi thêm sách:', error)
+  }
+}
+
+// API - Cập nhật sách
+const saveBook = async () => {
+  try {
+    await axios.put(`http://localhost:3000/books/${book.value.id}`, book.value)
+    fetchBooks()
+    isEditBookModalOpen.value = false
+  } catch (error) {
+    console.error('Lỗi khi cập nhật sách:', error)
+  }
+}
+
+// API - Xóa sách
+const deleteBook = async (id) => {
+  try {
+    await axios.delete(`http://localhost:3000/books/${id}`)
+    fetchBooks()
+  } catch (error) {
+    console.error('Lỗi khi xóa sách:', error)
+  }
+}
+
+// Mở modal thêm sách
+const openAddBookModal = () => {
+  newBook.value = {
+    name: '',
+    bookcode: '',
+    author: '',
+    genre: '',
+    year: null,
+    quantity: '',
+    totalQuantity: '',
+  }
+  isAddBookModalOpen.value = true
+}
+
+// Mở modal chỉnh sửa sách
 const openEditBookModal = (b) => {
   book.value = { ...b }
   isEditBookModalOpen.value = true
 }
-const addBook = () => {
-  bookStore.createBook({ id: faker.database.mongodbObjectId(), ...newBook.value })
-  isAddBookModalOpen.value = false
-}
-const saveBook = () => {
-  bookStore.updateBook(book.value.id, { ...book.value })
-  isEditBookModalOpen.value = false
-}
-const deleteBook = (id) => bookStore.deleteBook(id)
 </script>

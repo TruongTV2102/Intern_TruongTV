@@ -10,6 +10,7 @@
             size="sm"
             class="tw-mr-2"
             @click="requestReturn(props.row)"
+            :disable="props.row.status === 'pending'"
           />
         </q-td>
       </template>
@@ -25,7 +26,7 @@ import { computed } from 'vue'
 const loanStore = useLoanStore()
 const userStore = useUserStore()
 const loanRequests = computed(() => loanStore.loanRequests)
-console.log('Danh sách yêu cầu mượn sách:', loanRequests.value)
+
 const columns = [
   { name: 'id', label: 'ID', field: (row) => row.book?.id || 'N/A', align: 'left' },
   {
@@ -54,6 +55,5 @@ const requestReturn = (row) => {
   }
 
   loanStore.returnRequestsBook(returnRequest) // Gửi yêu cầu trả sách
-  console.log('Yêu cầu trả sách đã gửi:', returnRequest)
 }
 </script>
