@@ -96,13 +96,8 @@ watch(
 
 const fetchBooks = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/books', {
-      headers: {
-        'api-key': 'your-secret-key',
-        'user-id': '1', // ID hợp lệ từ danh sách users
-      },
-    })
-    books.value = res.data.data
+    const res = await axios.get('http://localhost:3000/books')
+    books.value = res.data.books
   } catch (error) {
     console.error('Lỗi khi lấy danh sách sách:', error)
   }

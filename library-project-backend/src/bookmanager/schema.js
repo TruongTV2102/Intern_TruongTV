@@ -21,7 +21,6 @@ export const bookSchema = {
     },
     year: {
       type: "integer",
-      minimum: 1900,
       maximum: new Date().getFullYear(),
     },
     quantity: {

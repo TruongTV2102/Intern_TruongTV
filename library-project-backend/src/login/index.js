@@ -13,15 +13,15 @@ export default async function loginRoutes(fastify, options) {
       email: user.email,
       role: user.role,
     });
-    reply.send({ token });
+    return reply.send({ token });
   });
 
   fastify.get("/profile", async (request, reply) => {
     try {
       await request.jwtVerify();
-      reply.send({ user: request.user });
+      return reply.send({ user: request.user });
     } catch (err) {
-      reply.status(401).send({ message: "Unauthorized" });
+      return reply.status(401).send({ message: "Unauthorized" });
     }
   });
 }

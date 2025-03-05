@@ -1,28 +1,16 @@
-import jwt from "jsonwebtoken";
-
-export function authenticate(req, reply, done) {
+export async function authenticate(req, reply) {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return reply.status(401).send({ error: "Unauthorized" });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    req.user = decoded; // Gán user vào request để sử dụng sau này
-    done();
+    await req.jwtVerify(); // ✅ Fastify tự động lấy JWT từ header & verify
   } catch (error) {
     return reply.status(401).send({ error: "Unauthorized" });
   }
 }
 
-export function authorizeAdmin(req, reply, done) {
+export async function authorizeAdmin(req, reply) {
   if (req.user?.role !== "admin") {
     return reply.status(403).send({
       error: "Forbidden",
       message: "Bạn không có quyền thực hiện thao tác này",
     });
   }
-  done();
 }

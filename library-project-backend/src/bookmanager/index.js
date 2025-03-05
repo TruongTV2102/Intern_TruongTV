@@ -16,12 +16,12 @@ export default async function bookRoutes(fastify) {
     "/books",
     {
       schema: { body: { $ref: "bookSchema" } },
-      preHandler: [authenticate, authorizeAdmin],
+      preValidation: [authenticate, authorizeAdmin],
     }, // ✅ Kiểm tra quyền
     async (req, reply) => {
       const newBook = await addBook(req.body);
       return reply
-        .status(201)
+        .status(200)
         .send({ message: "Sách đã được thêm", book: newBook });
     }
   );
@@ -31,7 +31,7 @@ export default async function bookRoutes(fastify) {
     "/books/:id",
     {
       schema: { body: { $ref: "bookSchema" } },
-      preHandler: [authenticate, authorizeAdmin],
+      preValidation: [authenticate, authorizeAdmin],
     }, // ✅ Kiểm tra quyền
     async (req, reply) => {
       const updatedBook = await updateBook(req.params.id, req.body);
@@ -47,7 +47,7 @@ export default async function bookRoutes(fastify) {
   // 📌 Xóa sách (chỉ admin)
   fastify.delete(
     "/books/:id",
-    { preHandler: [authenticate, authorizeAdmin] }, // ✅ Kiểm tra quyền
+    { preValidation: [authenticate, authorizeAdmin] }, // ✅ Kiểm tra quyền
     async (req, reply) => {
       const success = await deleteBook(req.params.id);
       if (!success)

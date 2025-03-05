@@ -106,7 +106,12 @@ const filteredBooks = computed(() => {
 // API - Lấy danh sách sách
 const fetchBooks = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/books')
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Không tìm thấy token!')
+
+    const res = await axios.get('http://localhost:3000/books', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     books.value = res.data.books
   } catch (error) {
     console.error('Lỗi khi lấy danh sách sách:', error)
@@ -118,7 +123,12 @@ onMounted(fetchBooks)
 // API - Thêm sách
 const addBook = async () => {
   try {
-    await axios.post('http://localhost:3000/books', newBook.value)
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Không tìm thấy token!')
+
+    await axios.post('http://localhost:3000/books', newBook.value, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     fetchBooks()
     isAddBookModalOpen.value = false
   } catch (error) {
@@ -129,7 +139,12 @@ const addBook = async () => {
 // API - Cập nhật sách
 const saveBook = async () => {
   try {
-    await axios.put(`http://localhost:3000/books/${book.value.id}`, book.value)
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Không tìm thấy token!')
+
+    await axios.put(`http://localhost:3000/books/${book.value.id}`, book.value, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     fetchBooks()
     isEditBookModalOpen.value = false
   } catch (error) {
@@ -140,7 +155,12 @@ const saveBook = async () => {
 // API - Xóa sách
 const deleteBook = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/books/${id}`)
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Không tìm thấy token!')
+
+    await axios.delete(`http://localhost:3000/books/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     fetchBooks()
   } catch (error) {
     console.error('Lỗi khi xóa sách:', error)

@@ -70,7 +70,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.user.role === 'user'"
+            v-if="authStore.user.role === 'users'"
             clickable
             v-ripple
             @click="goToPage('/loanstatus')"
@@ -80,7 +80,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.user.role === 'user'"
+            v-if="authStore.user.role === 'users'"
             clickable
             v-ripple
             @click="goToPage('/history')"
@@ -139,15 +139,12 @@
 </template>
 
 <script setup>
-// import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-// import { useUserStore } from 'src/stores/userStore'
 import { useAuthStore } from 'src/stores/auth'
 import { onMounted } from 'vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-// const userStore = useUserStore()
 
 const goToPage = (path) => {
   router.push(path)
@@ -164,4 +161,6 @@ onMounted(() => {
     authStore.fetchUser()
   }
 })
+
+console.log(useAuthStore().user)
 </script>

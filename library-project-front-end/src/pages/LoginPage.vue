@@ -107,6 +107,7 @@ const onSubmit = async () => {
       toast.error(error.response?.data?.message || 'Đăng nhập thất bại!')
     }
   }
+  console.log(authStore.user)
 }
 
 const goToPage = (path) => {
