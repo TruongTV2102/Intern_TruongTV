@@ -1,45 +1,15 @@
 export const bookSchema = {
-  $id: "bookSchema",
-  type: "object",
-  properties: {
-    id: { type: "string" },
-    name: {
-      type: "string",
-      minLength: 1,
-    },
-    bookcode: {
-      type: "string",
-      minLength: 1,
-    },
-    author: {
-      type: "string",
-      minLength: 1,
-    },
-    genre: {
-      type: "string",
-      minLength: 1,
-    },
-    year: {
-      type: "integer",
-      maximum: new Date().getFullYear(),
-    },
-    quantity: {
-      type: "string",
-      minLength: 1,
-    },
-    totalQuantity: {
-      type: "string",
-      minLength: 1,
+  body: {
+    type: "object",
+    required: ["title", "author", "genre", "published_year", "quantity"],
+    properties: {
+      title: { type: "string", minLength: 1 },
+      author: { type: "string", minLength: 1 },
+      genre: { type: "string", minLength: 1 },
+      published_year: { type: "integer", minimum: 0 },
+      quantity: { type: "integer", minimum: 1 },
+      total_quantity: { type: "integer", minimum: 1 },
+      cover_image_id: { type: "integer", nullable: true },
     },
   },
-  required: [
-    "name",
-    "bookcode",
-    "author",
-    "genre",
-    "year",
-    "quantity",
-    "totalQuantity",
-  ],
-  additionalProperties: false,
 };

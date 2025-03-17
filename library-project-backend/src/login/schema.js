@@ -1,4 +1,3 @@
-// src/login/schema.js
 export const loginSchema = {
   $id: "loginSchema",
   type: "object",

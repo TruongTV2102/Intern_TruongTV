@@ -1,6 +1,6 @@
 export async function authenticate(req, reply) {
   try {
-    await req.jwtVerify(); // ✅ Fastify tự động lấy JWT từ header & verify
+    await req.jwtVerify(); //  Fastify tự động lấy JWT từ header & verify
   } catch (error) {
     return reply.status(401).send({ error: "Unauthorized" });
   }

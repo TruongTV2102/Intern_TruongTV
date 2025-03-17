@@ -1,7 +1,10 @@
-import { users } from "./users.js";
+import db from "../../db.js";
+import bcrypt from "bcrypt";
 
-export const findUser = (email, password) => {
-  return users.find(
-    (user) => user.email === email && user.password === password
-  );
-};
+export async function findUser(email) {
+  return await db("users").where({ email }).first();
+}
+
+export async function validatePassword(inputPassword, hashedPassword) {
+  return await bcrypt.compare(inputPassword, hashedPassword);
+}

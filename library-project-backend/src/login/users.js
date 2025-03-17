@@ -1,4 +1,0 @@
-export const users = [
-  { id: 1, email: "admin@example.com", password: "123456", role: "admin" },
-  { id: 2, email: "user@example.com", password: "password", role: "users" },
-];

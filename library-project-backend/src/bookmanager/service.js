@@ -1,83 +1,105 @@
-import fs from "fs/promises";
-import path from "path";
+import db from "../../db.js";
 
-const booksFile = path.join(process.cwd(), "books.json");
-
-// 📌 Đọc danh sách sách
-export const loadBooks = async () => {
-  try {
-    const data = await fs.readFile(booksFile, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
+/**
+ * Kiểm tra author, nếu chưa có thì thêm vào
+ */
+async function getOrCreateAuthor(author) {
+  let [authorRecord] = await db("authors").where("name", author).select("id");
+  if (!authorRecord) {
+    const [authorId] = await db("authors").insert({ name: author });
+    return { id: authorId };
   }
-};
+  return authorRecord;
+}
 
-// Lưu danh sách sách
-export const saveBooks = async (books) => {
-  await fs.writeFile(booksFile, JSON.stringify(books, null, 2));
-};
+/**
+ * Kiểm tra genre, nếu chưa có thì thêm vào
+ */
+async function getOrCreateGenre(genre) {
+  let [genreRecord] = await db("genres").where("name", genre).select("id");
+  if (!genreRecord) {
+    const [genreId] = await db("genres").insert({ name: genre });
+    return { id: genreId };
+  }
+  return genreRecord;
+}
 
-// Thêm sách mới
-export const addBook = async ({
-  name,
-  bookcode,
-  author,
-  genre,
-  year,
-  quantity,
-  totalQuantity,
-}) => {
-  const books = await loadBooks();
-  const newBook = {
-    id: Date.now().toString(),
-    name,
-    bookcode,
-    author,
-    genre,
-    year,
+/**
+ * Thêm sách vào database
+ */
+export async function addBook(bookData) {
+  const { title, author, genre, published_year, quantity, cover_image_id } =
+    bookData;
+
+  const authorRecord = await getOrCreateAuthor(author);
+  const genreRecord = await getOrCreateGenre(genre);
+
+  const [bookId] = await db("books").insert({
+    title,
+    author_id: authorRecord.id,
+    genre_id: genreRecord.id,
+    published_year,
     quantity,
-    totalQuantity,
-  };
-  books.push(newBook);
-  await saveBooks(books);
-  return newBook;
-};
+    total_quantity: quantity,
+    cover_image_id,
+  });
 
-// Lấy danh sách sách
-export const getBooks = async () => {
-  return await loadBooks();
-};
+  return bookId;
+}
 
-// Cập nhật sách
-export const updateBook = async (
-  id,
-  { name, bookcode, author, genre, year, quantity, totalQuantity }
-) => {
-  let books = await loadBooks();
-  const index = books.findIndex((book) => book.id === id);
-  if (index === -1) return null;
+/**
+ * Lấy danh sách sách
+ */
+export async function getBooks() {
+  return await db("books")
+    .leftJoin("images", "books.cover_image_id", "images.id")
+    .leftJoin("authors", "books.author_id", "authors.id")
+    .leftJoin("genres", "books.genre_id", "genres.id")
+    .select(
+      "books.id",
+      "books.title",
+      "authors.name as author",
+      "genres.name as genre",
+      "books.published_year",
+      "books.quantity",
+      "books.total_quantity",
+      "images.url as cover_image_url"
+    );
+}
 
-  books[index] = {
-    id,
-    name,
-    bookcode,
-    author,
-    genre,
-    year,
+export async function getBookById(id) {
+  try {
+    const book = await db("books").where({ id }).first();
+    return book || null;
+  } catch (error) {
+    console.error("Lỗi lấy sách theo ID:", error);
+    throw new Error("Lỗi khi truy vấn database");
+  }
+}
+
+/**
+ * Cập nhật thông tin sách
+ */
+export async function updateBook(bookId, bookData) {
+  const { title, author, genre, published_year, quantity, cover_image_id } =
+    bookData;
+
+  const authorRecord = await getOrCreateAuthor(author);
+  const genreRecord = await getOrCreateGenre(genre);
+
+  await db("books").where("id", bookId).update({
+    title,
+    author_id: authorRecord.id,
+    genre_id: genreRecord.id,
+    published_year,
     quantity,
-    totalQuantity,
-  };
-  await saveBooks(books);
-  return books[index];
-};
+    cover_image_id,
+  });
+}
 
-// Xóa sách
-export const deleteBook = async (id) => {
-  let books = await loadBooks();
-  const newBooks = books.filter((book) => book.id !== id);
-  if (books.length === newBooks.length) return false;
-
-  await saveBooks(newBooks);
-  return true;
-};
+/**
+ * Xóa sách theo ID
+ */
+export async function deleteBook(bookId) {
+  await db("books").where("id", bookId).del();
+}
