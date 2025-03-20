@@ -5,7 +5,7 @@ import axios from 'axios'
 export const useUserStore = defineStore('user', () => {
   const currentUser = ref(null)
 
-  // ✅ Đăng nhập & lưu token
+  // Đăng nhập & lưu token
   const loginUser = async (email, password) => {
     try {
       const response = await axios.post('http://localhost:3000/login', { email, password })
@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // ✅ Lấy thông tin user khi tải trang
+  // Lấy thông tin user khi tải trang
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // ✅ Đăng xuất
+  // Đăng xuất
   const logoutUser = () => {
     localStorage.removeItem('token')
     currentUser.value = null

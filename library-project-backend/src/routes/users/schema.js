@@ -46,3 +46,12 @@ export const changePasswordSchema = {
     },
   },
 };
+
+export const resetPasswordSchema = {
+  bode: {
+    type: "object",
+    properties: {
+      email: { type: "string", format: "email" },
+    },
+  },
+};

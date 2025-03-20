@@ -9,15 +9,18 @@
           :key="book.id"
           class="tw-bg-white tw-p-4 tw-rounded-lg tw-shadow tw-relative"
         >
-          <img :src="book.image" class="tw-rounded-lg tw-w-full tw-h-[350px] tw-object-contain" />
+          <img
+            :src="book.cover_image_url"
+            class="tw-rounded-lg tw-w-full tw-h-[350px] tw-object-contain"
+          />
 
-          <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.name }}</h3>
+          <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.title }}</h3>
           <p class="tw-text-sm tw-text-gray-600 tw-truncate">Tác giả: {{ book.author }}</p>
           <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre }}</p>
-          <p class="tw-text-sm tw-text-gray-600">Năm xuất bản: {{ book.year }}</p>
+          <p class="tw-text-sm tw-text-gray-600">Năm xuất bản: {{ book.published_year }}</p>
           <p class="tw-text-sm" :class="{ 'tw-text-red-500': book.quantity === 0 }">
             <b>Số lượng:</b>
-            {{ book.quantity }} / {{ book.totalQuantity }} sách
+            {{ book.quantity }} / {{ book.total_quantity }} sách
           </p>
           <p class="tw-text-sm" :class="{ 'tw-text-red-500': book.quantity === 0 }">
             <b>Tình trạng:</b> {{ book.quantity > 0 ? 'Có sẵn' : 'Hết sách' }}
@@ -67,13 +70,11 @@ import { computed, onMounted, ref, watch } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
 import BookDetail from 'components/BookDetail.vue'
 import BorrowBook from 'components/BorrowBook.vue'
-// import { useBookStore } from 'src/stores/bookStore'
-import { useUserStore } from 'src/stores/userStore'
+import { useAuthStore } from 'src/stores/auth'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
-// const bookStore = useBookStore()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const books = ref([])
@@ -86,11 +87,7 @@ const searchField = ref(route.query.search_field || 'Tên sách')
 watch(
   () => route.query.search_field,
   (newVal) => {
-    if (newVal) {
-      searchField.value = newVal
-    } else {
-      searchField.value = 'Tên sách' // Giá trị mặc định
-    }
+    searchField.value = newVal || 'Tên sách'
   },
 )
 
@@ -105,15 +102,11 @@ const fetchBooks = async () => {
 
 onMounted(fetchBooks)
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredBooks.value.length / itemsPerPage)
-})
-
+const totalPages = computed(() => Math.ceil(filteredBooks.value.length / itemsPerPage))
 const showPagination = computed(() => filteredBooks.value.length > 20)
 const paginatedBooks = computed(() => {
   const start = currentPage.value * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredBooks.value.slice(start, end)
+  return filteredBooks.value.slice(start, start + itemsPerPage)
 })
 
 const changePage = (page) => {
@@ -122,22 +115,14 @@ const changePage = (page) => {
   }
 }
 
-// Tìm kiếm sách theo tên, tác giả, thể loại và năm
 const filteredBooks = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim() // Chuyển thành chữ thường và xóa khoảng trắng
+  const query = searchQuery.value.toLowerCase().trim()
   return books.value.filter((book) => {
-    const field = searchField.value // Trường tìm kiếm được chọn
-    if (field === 'Tên sách') {
-      return book.name.toLowerCase().includes(query) // Tìm kiếm tên sách chứa chuỗi tìm kiếm
-    } else if (field === 'Tác giả') {
-      return book.author.toLowerCase().includes(query) // Tìm kiếm tác giả chứa chuỗi tìm kiếm
-    } else if (field === 'Thể loại') {
-      return book.genre.toLowerCase().includes(query) // Tìm kiếm thể loại chứa chuỗi tìm kiếm
-    } else if (field === 'Năm') {
-      return book.year.toString().includes(query) // Tìm kiếm năm chứa chuỗi tìm kiếm
-    }
-
-    return false // Trả về false nếu không khớp với bất kỳ trường nào
+    if (searchField.value === 'Tên sách') return book.title.toLowerCase().includes(query)
+    if (searchField.value === 'Tác giả') return book.author.toLowerCase().includes(query)
+    if (searchField.value === 'Thể loại') return book.genre.toLowerCase().includes(query)
+    if (searchField.value === 'Năm') return book.published_year.toString().includes(query)
+    return false
   })
 })
 
@@ -151,7 +136,7 @@ const openModal = (book) => {
 }
 
 const borrowBook = () => {
-  if (!userStore.currentUser) {
+  if (!authStore.user) {
     router.push('/login')
   } else {
     isBorrowFormOpen.value = true

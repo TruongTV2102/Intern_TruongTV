@@ -48,6 +48,16 @@ const routes = [
         component: () => import('src/pages/ReturnRequestManagement.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'lungtung',
+        component: () => import('src/pages/LungTung.vue'),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: 'cart',
+        component: () => import('src/pages/CartView.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
   {

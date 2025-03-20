@@ -1,11 +1,14 @@
 <template>
-  <q-dialog v-model="localIsOpen" @update:modelValue="emit('update:isOpen', $event)">
+  <q-dialog :model-value="isOpen" @update:modelValue="emit('update:isOpen', $event)">
     <q-card class="tw-w-1/2 tw-p-4 tw-shadow-lg tw-rounded-lg">
       <q-card-section>
         <div class="tw-flex">
           <!-- Ảnh sách bên trái -->
           <div class="tw-w-1/2">
-            <img :src="book.image" class="tw-rounded-lg tw-w-full tw-h-[350px] tw-object-contain" />
+            <img
+              :src="book?.cover_image_url"
+              class="tw-rounded-lg tw-w-full tw-h-[350px] tw-object-contain"
+            />
           </div>
 
           <!-- Thông tin sách bên phải -->
@@ -16,12 +19,12 @@
             <p class="tw-text-gray-700"><b>Mã sách:</b> {{ localBook.bookcode }}</p>
             <p class="tw-text-gray-700"><b>Năm xuất bản:</b> {{ localBook.year }}</p>
             <p class="tw-text-gray-700">
-              <b>Số lượng sách:</b> {{ localBook.quantity }} / {{ localBook.totalQuantity }}
+              <b>Số lượng sách:</b> {{ localBook.quantity }} / {{ localBook.total_quantity }}
             </p>
             <p class="tw-text-gray-700">
               <b>Tình trạng:</b>
               <span :class="{ 'tw-text-red-500': localBook.quantity === 0 }">
-                {{ book.quantity > 0 ? 'Có sẵn' : 'Hết sách' }}
+                {{ localBook.quantity > 0 ? 'Có sẵn' : 'Hết sách' }}
               </span>
             </p>
 
@@ -44,11 +47,11 @@
       <!-- Nút mượn sách -->
       <q-card-actions>
         <q-btn
-          label="Mượn sách"
+          label="Thêm vào đơn hàng"
           color="primary"
           class="tw-w-full"
-          :disabled="localBook.quantity === 0 || userStore.currentUser.role === 'admin'"
-          @click="$emit('borrow')"
+          :disabled="localBook.quantity === 0 || authStore.user.role === 'admin'"
+          @click="submitAddToCart"
         />
       </q-card-actions>
     </q-card>
@@ -56,27 +59,20 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useUserStore } from 'src/stores/userStore'
+import { computed } from 'vue'
+import { useAuthStore } from 'src/stores/auth'
+import { useCartStore } from 'src/stores/cartStore'
 
 const props = defineProps({ isOpen: Boolean, book: Object })
-const emit = defineEmits(['borrow', 'update:isOpen'])
-const userStore = useUserStore()
-const localIsOpen = ref(props.isOpen)
-const localBook = ref({ ...props.book })
+const emit = defineEmits(['update:isOpen'])
+const authStore = useAuthStore()
+const cartStore = useCartStore()
 
-watch(
-  () => props.isOpen,
-  (newVal) => {
-    localIsOpen.value = newVal
-  },
-)
+// Sử dụng computed thay vì ref + watch
+const localBook = computed(() => props.book)
 
-watch(
-  () => props.book,
-  (newBook) => {
-    localBook.value = { ...newBook } // Cập nhật lại toàn bộ dữ liệu
-  },
-  { deep: true }, // Đảm bảo theo dõi thay đổi bên trong object
-)
+const submitAddToCart = () => {
+  cartStore.addBook(localBook.value)
+  emit('update:isOpen', false)
+}
 </script>

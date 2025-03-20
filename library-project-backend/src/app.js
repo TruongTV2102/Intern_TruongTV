@@ -3,13 +3,16 @@ import Ajv from "ajv";
 import ajvErrors from "ajv-errors";
 import addFormats from "ajv-formats";
 import fastifyCors from "@fastify/cors";
-import bookRoutes from "./bookmanager/index.js";
-import loginRoutes from "./login/index.js";
-import borrowRoutes from "./returnrequest/index.js";
-import userRoutes from "./users/index.js";
 import jwt from "@fastify/jwt";
-import uploadRoutes from "./uploads/upload.js";
-import bookSearchRoutes from "./bookSearch/bookSearch.js";
+import mailer from "./plugins/mailer.js";
+import bookRoutes from "./routes/bookmanager/index.js";
+import loginRoutes from "./routes/login/index.js";
+import userRoutes from "./routes/users/index.js";
+import borrowRoutes from "./routes/borrowRequest/index.js";
+import returnRoutes from "./routes/returnrequest/index.js";
+import historyRoutes from "./routes/history/index.js";
+import uploadRoutes from "./routes/uploads/upload.js";
+import bookSearchRoutes from "./routes/bookSearch/bookSearch.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -66,15 +69,36 @@ fastify.addHook("onResponse", async (req, reply) => {
 });
 
 fastify.addHook("onError", async (req, reply, error) => {
-  fastify.log.error(` [ERROR] ${error.message}`);
+  fastify.log.error(`[ERROR] ${error.message}`);
+
+  // Map lỗi tùy chỉnh
+  const errorMap = {
+    "Mật khẩu xác nhận không khớp": 400,
+    "Người dùng không tồn tại": 400,
+    "Sách không tồn tại": 400,
+    "Thể loại không tồn tại": 400,
+    "Tác giả không tồn tại": 400,
+    "Email hoặc mật khẩu không đúng": 400,
+    "Không có file upload": 400,
+    Unauthorized: 400,
+  };
+
+  const statusCode = errorMap[error.message] || error.statusCode || 500;
+
+  return reply.status(statusCode).send({
+    error: error.message,
+  });
 });
 
 // Đăng ký routes
 fastify.register(bookRoutes);
 fastify.register(loginRoutes);
-fastify.register(borrowRoutes);
 fastify.register(userRoutes);
 fastify.register(uploadRoutes);
 fastify.register(bookSearchRoutes);
+fastify.register(borrowRoutes);
+fastify.register(returnRoutes);
+fastify.register(historyRoutes);
+fastify.register(mailer);
 
 export default fastify;

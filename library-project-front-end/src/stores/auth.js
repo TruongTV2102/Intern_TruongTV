@@ -27,6 +27,8 @@ export const useAuthStore = defineStore('auth', () => {
         headers: { Authorization: `Bearer ${token.value}` },
       })
       user.value = data.user
+      console.log(data.user)
+
       localStorage.setItem('user', JSON.stringify(data.user))
     } catch (error) {
       console.log(error)

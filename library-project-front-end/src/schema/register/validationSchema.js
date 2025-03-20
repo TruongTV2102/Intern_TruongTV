@@ -11,7 +11,7 @@ export const registerSchema = {
         minLength: messageError.nameempty,
       },
     },
-    date: {
+    birthday: {
       type: 'string',
       format: 'date',
       minLength: 1,

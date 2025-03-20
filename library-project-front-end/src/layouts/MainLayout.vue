@@ -70,7 +70,17 @@
           </q-item>
 
           <q-item
-            v-if="authStore.user.role === 'users'"
+            v-if="authStore.user.role === 'user'"
+            clickable
+            v-ripple
+            @click="goToPage('/cart')"
+          >
+            <q-item-section avatar><q-icon name="cart" /></q-item-section>
+            <q-item-section>Đơn hàng</q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="authStore.user.role === 'user'"
             clickable
             v-ripple
             @click="goToPage('/loanstatus')"
@@ -80,7 +90,7 @@
           </q-item>
 
           <q-item
-            v-if="authStore.user.role === 'users'"
+            v-if="authStore.user.role === 'user'"
             clickable
             v-ripple
             @click="goToPage('/history')"
@@ -163,4 +173,5 @@ onMounted(() => {
 })
 
 console.log(useAuthStore().user)
+// console.log(authStore.user.role)
 </script>

@@ -26,12 +26,12 @@
           <q-input
             ref="dateInput"
             filled
-            v-model="formData.date"
+            v-model="formData.birthday"
             label="Date of Birth"
             class="tw-px-4 tw-py-3"
             type="date"
-            :error="!!validationErrors.date"
-            :error-message="validationErrors.date"
+            :error="!!validationErrors.birthday"
+            :error-message="validationErrors.birthday"
           />
 
           <!-- Phone Number -->
@@ -129,7 +129,7 @@ const formData = reactive({
   email: '',
   password: '',
   confirmpassword: '',
-  date: '',
+  birthday: '',
   phone: '',
 })
 

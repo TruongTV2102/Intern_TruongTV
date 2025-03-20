@@ -3,124 +3,98 @@
     <!-- Thanh tìm kiếm -->
     <GenreSearchBar v-model:searchQuery="searchQuery" />
 
-    <!-- Hiển thị sách theo thể loại khi không tìm kiếm -->
+    <!-- Hiển thị toàn bộ sách -->
+    <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
+      <div
+        v-for="book in books"
+        :key="book.id"
+        class="tw-bg-white tw-p-4 tw-rounded-lg tw-shadow tw-min-w-[180px] tw-w-full"
+      >
+        <!-- Ảnh -->
+        <img
+          :src="book.cover_image_url"
+          class="tw-rounded-lg tw-mb-2 tw-w-full tw-h-[300px] tw-object-contain"
+        />
 
-    <div v-for="(books, genre) in groupedBooks" :key="genre">
-      <h2 class="tw-text-xl tw-font-bold tw-mb-2 tw-pt-[10px]">{{ genre }}</h2>
-      <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
-        <div
-          v-for="book in expandedGenres[genre] ? books : books.slice(0, 4)"
-          :key="book.id"
-          class="tw-bg-white tw-p-4 tw-rounded-lg tw-shadow tw-relative tw-min-w-[180px] tw-w-full"
-        >
-          <!-- Ảnh -->
-          <img
-            :src="book.image"
-            class="tw-rounded-lg tw-mb-2 tw-w-full tw-h-[300px] tw-object-contain"
-          />
+        <!-- Thông tin sách -->
+        <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.title }}</h3>
+        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Tác giả: {{ book.author }}</p>
+        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre }}</p>
+        <p class="tw-text-sm tw-text-gray-600">Năm xuất bản: {{ book.published_year }}</p>
+        <p class="tw-text-sm" :class="{ 'tw-text-red-500': book.quantity === 0 }">
+          <b>Tình trạng:</b> {{ book.quantity > 0 ? 'Có sẵn' : 'Hết sách' }}
+        </p>
 
-          <!-- Thông tin sách -->
-          <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.name }}</h3>
-          <p class="tw-text-sm tw-text-gray-600 tw-truncate">Tác giả: {{ book.author }}</p>
-          <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre }}</p>
-          <p class="tw-text-sm tw-text-gray-600">Năm xuất bản: {{ book.year }}</p>
-          <p class="tw-text-sm" :class="{ 'tw-text-red-500': book.quantity === 0 }">
-            <b>Số lượng:</b>
-            {{ book.quantity }} / {{ book.totalQuantity }} sách
-          </p>
-          <p class="tw-text-sm" :class="{ 'tw-text-red-500': book.quantity === 0 }">
-            <b>Tình trạng:</b> {{ book.quantity > 0 ? 'Có sẵn' : 'Hết sách' }}
-          </p>
-
-          <!-- Nút Chi tiết -->
-          <q-btn
-            label="Chi tiết"
-            color="primary"
-            class="tw-mt-2 tw-w-full"
-            @click="openModal(book)"
-          />
-        </div>
-      </div>
-
-      <!-- Nút Xem thêm -->
-      <div v-if="books.length > 4" class="tw-mt-2 tw-text-center">
-        <q-btn label="Xem Thêm" color="blue" flat @click="viewMoreBooks(genre)" />
+        <!-- Nút Chi tiết -->
+        <q-btn
+          label="Chi tiết"
+          color="primary"
+          class="tw-mt-2 tw-w-full"
+          @click="openModal(book)"
+        />
       </div>
     </div>
+
+    <!-- Thanh phân trang -->
+    <div class="tw-mt-4 tw-flex tw-justify-center tw-gap-4">
+      <q-btn label="« Trước" color="blue" :disabled="page === 1" @click="prevPage" />
+      <span>Trang {{ page }} / {{ totalPages }}</span>
+      <q-btn label="Tiếp »" color="blue" :disabled="page === totalPages" @click="nextPage" />
+    </div>
+
+    <!-- Popup Modal hiển thị thông tin chi tiết sách -->
+    <BookDetail v-model:isOpen="isModalOpen" :book="selectedBook" />
   </div>
-
-  <!-- Popup Modal hiển thị thông tin chi tiết sách -->
-  <BookDetail v-model:isOpen="isModalOpen" :book="selectedBook" @borrow="borrowBook" />
-
-  <!-- Form đăng ký mượn sách -->
-  <BorrowBook v-model:isOpen="isBorrowFormOpen" :book="selectedBook" />
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import GenreSearchBar from 'components/GenreSearchBar.vue'
-import { useUserStore } from 'src/stores/userStore'
-// import { useBookStore } from 'src/stores/bookStore'
-import { useRouter } from 'vue-router'
-import BookDetail from 'src/components/BookDetail.vue'
-import BorrowBook from 'src/components/BorrowBook.vue'
+import BookDetail from 'components/BookDetail.vue'
 import axios from 'axios'
 
-const router = useRouter()
-const expandedGenres = ref({})
 const isModalOpen = ref(false)
 const selectedBook = ref(null)
 const searchQuery = ref('')
-const userStore = useUserStore()
-// const bookStore = useBookStore()
-
 const books = ref([])
 
-// API - Lấy danh sách sách
+// Phân trang
+const page = ref(1)
+const limit = 8 // Số sách mỗi trang
+const total = ref(0)
+
+const totalPages = computed(() => Math.ceil(total.value / limit)) // Tổng số trang
+
+// API - Lấy danh sách sách theo trang
 const fetchBooks = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/books')
+    const res = await axios.get(`http://localhost:3000/books?page=${page.value}&limit=${limit}`)
     books.value = res.data.books
+    total.value = res.data.total // Tổng số sách
   } catch (error) {
     console.error('Lỗi khi lấy danh sách sách:', error)
   }
 }
 
-onMounted(fetchBooks)
-
-// Nhóm sách theo thể loại
-const groupedBooks = computed(() => {
-  const groups = {}
-  books.value.forEach((book) => {
-    if (!groups[book.genre]) {
-      groups[book.genre] = []
-    }
-    groups[book.genre].push(book)
-  })
-  return groups
-})
-
-// Cập nhật phương thức tìm kiếm theo thể loại khi ấn "Xem thêm"
-const viewMoreBooks = (genre) => {
-  // Chuyển sang trang tìm kiếm và truyền danh sách sách và searchQuery
-  router.push({
-    path: '/search',
-    query: { search_query: genre, search_field: 'Thể loại' },
-  })
+// Điều hướng trang
+const nextPage = () => {
+  if (page.value < totalPages.value) {
+    page.value++
+    fetchBooks()
+  }
 }
+const prevPage = () => {
+  if (page.value > 1) {
+    page.value--
+    fetchBooks()
+  }
+}
+
+onMounted(fetchBooks)
 
 // Mở modal chi tiết sách
 const openModal = (book) => {
   selectedBook.value = book
   isModalOpen.value = true
-}
-const isBorrowFormOpen = ref(false)
-// Mượn sách
-const borrowBook = () => {
-  if (!userStore.currentUser) {
-    router.push('/login')
-  } else {
-    isBorrowFormOpen.value = true
-  }
 }
 </script>

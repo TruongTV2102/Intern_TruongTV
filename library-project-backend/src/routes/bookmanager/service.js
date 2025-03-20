@@ -1,16 +1,4 @@
-import db from "../../db.js";
-
-/**
- * Kiểm tra author, nếu chưa có thì thêm vào
- */
-async function getOrCreateAuthor(author) {
-  let [authorRecord] = await db("authors").where("name", author).select("id");
-  if (!authorRecord) {
-    const [authorId] = await db("authors").insert({ name: author });
-    return { id: authorId };
-  }
-  return authorRecord;
-}
+import db from "../../config/db.js";
 
 /**
  * Kiểm tra genre, nếu chưa có thì thêm vào
@@ -28,20 +16,19 @@ async function getOrCreateGenre(genre) {
  * Thêm sách vào database
  */
 export async function addBook(bookData) {
-  const { title, author, genre, published_year, quantity, cover_image_id } =
+  const { title, author, genre, published_year, quantity, cover_image_url } =
     bookData;
 
-  const authorRecord = await getOrCreateAuthor(author);
   const genreRecord = await getOrCreateGenre(genre);
 
   const [bookId] = await db("books").insert({
     title,
-    author_id: authorRecord.id,
+    author,
     genre_id: genreRecord.id,
     published_year,
     quantity,
     total_quantity: quantity,
-    cover_image_id,
+    cover_image_url,
   });
 
   return bookId;
@@ -50,21 +37,27 @@ export async function addBook(bookData) {
 /**
  * Lấy danh sách sách
  */
-export async function getBooks() {
-  return await db("books")
-    .leftJoin("images", "books.cover_image_id", "images.id")
-    .leftJoin("authors", "books.author_id", "authors.id")
+export async function getBooks(page = 1, limit = 5) {
+  const offset = (page - 1) * limit;
+
+  const books = await db("books")
     .leftJoin("genres", "books.genre_id", "genres.id")
     .select(
       "books.id",
       "books.title",
-      "authors.name as author",
+      "author",
       "genres.name as genre",
       "books.published_year",
       "books.quantity",
       "books.total_quantity",
-      "images.url as cover_image_url"
-    );
+      "cover_image_url"
+    )
+    .limit(limit)
+    .offset(offset);
+
+  const [{ total }] = await db("books").count("id as total");
+
+  return { books, total };
 }
 
 export async function getBookById(id) {
@@ -81,19 +74,17 @@ export async function getBookById(id) {
  * Cập nhật thông tin sách
  */
 export async function updateBook(bookId, bookData) {
-  const { title, author, genre, published_year, quantity, cover_image_id } =
+  const { title, author, genre, published_year, quantity, cover_image_url } =
     bookData;
-
-  const authorRecord = await getOrCreateAuthor(author);
   const genreRecord = await getOrCreateGenre(genre);
 
   await db("books").where("id", bookId).update({
     title,
-    author_id: authorRecord.id,
+    author,
     genre_id: genreRecord.id,
     published_year,
     quantity,
-    cover_image_id,
+    cover_image_url,
   });
 }
 
@@ -101,5 +92,7 @@ export async function updateBook(bookId, bookData) {
  * Xóa sách theo ID
  */
 export async function deleteBook(bookId) {
-  await db("books").where("id", bookId).del();
+  const deletedRows = await db("books").where("id", bookId).del();
+  if (!deletedRows) throw new Error("Sách không tồn tại");
+  return deletedRows;
 }

@@ -1,4 +1,4 @@
-import db from "../../db.js";
+import db from "../../config/db.js";
 import bcrypt from "bcrypt";
 
 export async function createUser(userData) {
@@ -67,4 +67,33 @@ export async function changePassword(email, oldPassword, newPassword) {
   await db("users").where({ email }).update({ password: hashedPassword });
 
   return "Đổi mật khẩu thành công";
+}
+
+function generateRandomPassword() {
+  return Math.random().toString(36).slice(-8);
+}
+
+export async function resetPassword(fastify, email) {
+  const user = await db("users").where({ email }).first();
+  if (!user) {
+    throw new Error("Email không tồn tại");
+  }
+
+  const newPassword = generateRandomPassword();
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // ✅ Lưu mật khẩu đã hash vào database
+  await db("users").where({ email }).update({ password: hashedPassword });
+
+  // 📨 Gửi email mật khẩu mới
+  await fastify.mailer.sendMail({
+    from: "truong9x00z@gmail.com", // Email đã đăng ký với SendGrid
+    to: email,
+    subject: "Reset mật khẩu",
+    text: `Mật khẩu mới của bạn: ${newPassword}`,
+  });
+
+  const updatedUser = await db("users").where({ email }).first();
+
+  return { message: "Mật khẩu mới đã được gửi đến email", user: updatedUser };
 }

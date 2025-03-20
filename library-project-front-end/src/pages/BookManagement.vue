@@ -23,12 +23,11 @@
       <q-card class="tw-w-1/2 tw-p-4">
         <q-card-section>
           <q-input v-model="newBook.name" label="Tên sách" />
-          <q-input v-model="newBook.bookcode" label="Mã sách" />
           <q-input v-model="newBook.author" label="Tác giả" />
           <q-input v-model="newBook.genre" label="Thể loại" />
-          <q-input v-model="newBook.year" label="Năm xuất bản" type="number" />
+          <q-input v-model="newBook.published_year" label="Năm xuất bản" type="number" />
           <q-input v-model="newBook.quantity" label="Số lượng" type="number" />
-          <q-input v-model="newBook.totalQuantity" label="Tổng số lượng" type="number" />
+          <q-input v-model="newBook.total_quantity" label="Tổng số lượng" type="number" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn label="Thêm" color="green" @click="addBook" />
@@ -42,12 +41,11 @@
       <q-card class="tw-w-1/2 tw-p-4">
         <q-card-section>
           <q-input v-model="book.name" label="Tên sách" />
-          <q-input v-model="book.bookcode" label="Mã sách" />
           <q-input v-model="book.author" label="Tác giả" />
           <q-input v-model="book.genre" label="Thể loại" />
-          <q-input v-model="book.year" label="Năm xuất bản" type="number" />
+          <q-input v-model="book.published_year" label="Năm xuất bản" type="number" />
           <q-input v-model="book.quantity" label="Số lượng" type="number" />
-          <q-input v-model="book.totalQuantity" label="Tổng số lượng" type="number" />
+          <q-input v-model="book.total_quantity" label="Tổng số lượng" type="number" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn label="Lưu" color="primary" @click="saveBook" />
@@ -71,23 +69,21 @@ const isEditBookModalOpen = ref(false)
 const book = ref({})
 const newBook = ref({
   name: '',
-  bookcode: '',
   author: '',
   genre: '',
-  year: null,
+  published_year: null,
   quantity: '',
-  totalQuantity: '',
+  total_quantity: '',
 })
 
 // Cấu hình cột bảng
 const columns = [
   { name: 'name', label: 'Tên sách', field: 'name', align: 'left' },
-  { name: 'bookcode', label: 'Mã sách', field: 'bookcode', align: 'left' },
   { name: 'author', label: 'Tác giả', field: 'author', align: 'left' },
   { name: 'genre', label: 'Thể loại', field: 'genre', align: 'left' },
-  { name: 'year', label: 'Năm xuất bản', field: 'year', align: 'left' },
+  { name: 'published_year', label: 'Năm xuất bản', field: 'published_year', align: 'left' },
   { name: 'quantity', label: 'Số lượng', field: 'quantity', align: 'center' },
-  { name: 'totalQuantity', label: 'Tổng số lượng', field: 'totalQuantity', align: 'center' },
+  { name: 'total_quantity', label: 'Tổng số lượng', field: 'total_quantity', align: 'center' },
   { name: 'actions', label: 'Hành động', field: 'actions', align: 'center' },
 ]
 
@@ -98,7 +94,7 @@ const filteredBooks = computed(() => {
     if (searchField.value === 'Tên sách') return b.name.toLowerCase().includes(query)
     if (searchField.value === 'Tác giả') return b.author.toLowerCase().includes(query)
     if (searchField.value === 'Thể loại') return b.genre.toLowerCase().includes(query)
-    if (searchField.value === 'Năm') return b.year.toString().includes(query)
+    if (searchField.value === 'Năm') return b.published_year.toString().includes(query)
     return false
   })
 })
@@ -129,7 +125,7 @@ const addBook = async () => {
     await axios.post('http://localhost:3000/books', newBook.value, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    fetchBooks()
+    await fetchBooks()
     isAddBookModalOpen.value = false
   } catch (error) {
     console.error('Lỗi khi thêm sách:', error)
@@ -171,12 +167,11 @@ const deleteBook = async (id) => {
 const openAddBookModal = () => {
   newBook.value = {
     name: '',
-    bookcode: '',
     author: '',
     genre: '',
-    year: null,
+    published_year: null,
     quantity: '',
-    totalQuantity: '',
+    total_quantity: '',
   }
   isAddBookModalOpen.value = true
 }
