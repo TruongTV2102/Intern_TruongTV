@@ -2,37 +2,61 @@ import db from "../../config/db.js";
 
 export default async function bookSearchRoutes(fastify) {
   fastify.get("/books/search", async (req, reply) => {
-    const { title, genre, author, published_year } = req.query;
+    const {
+      title,
+      genre,
+      author,
+      published_year,
+      page = 1,
+      limit = 8,
+    } = req.query;
 
-    // Khởi tạo truy vấn JOIN để lấy đầy đủ thông tin
-    const sql = db("books")
+    const offset = (page - 1) * limit; // Tính toán offset cho phân trang
+
+    // Truy vấn dữ liệu sách với các bộ lọc
+    const booksQuery = db("books")
       .leftJoin("genres", "books.genre_id", "genres.id")
       .select(
-        "books.*",
-        "authors.name as author_name",
+        "books.id",
+        "books.title",
+        "books.author",
+        "books.published_year",
+        "books.quantity",
+        "books.total_quantity",
+        "books.cover_image_url",
         "genres.name as genre_name"
-      );
+      )
+      .limit(limit)
+      .offset(offset);
 
-    // Nếu có genre, kiểm tra và lọc theo tên
+    // Thêm điều kiện lọc nếu có
     if (genre) {
-      sql.whereILike("genres.name", `%${genre}%`);
+      booksQuery.whereILike("genres.name", genre);
     }
-
-    // Nếu có author, kiểm tra và lọc theo tên
     if (author) {
-      sql.whereILike("author", `%${author}%`);
+      booksQuery.whereILike("books.author", `%${author}%`);
     }
-
-    // Nếu có title, tìm kiếm theo tiêu đề sách
     if (title) {
-      sql.whereILike("books.title", `%${title}%`);
+      booksQuery.whereILike("books.title", `%${title}%`);
     }
-
-    // Nếu có năm xuất bản, lọc theo năm xuất bản
     if (published_year) {
-      sql.whereILike("books.published_year", `%${published_year}%`);
+      booksQuery.where("books.published_year", published_year);
     }
 
-    return sql;
+    // Lấy danh sách sách
+    const books = await booksQuery;
+
+    // Đếm tổng số sách phù hợp với bộ lọc
+    const [{ total }] = await db("books")
+      .leftJoin("genres", "books.genre_id", "genres.id")
+      .modify((query) => {
+        if (genre) query.whereILike("genres.name", genre);
+        if (author) query.whereILike("books.author", `%${author}%`);
+        if (title) query.whereILike("books.title", `%${title}%`);
+        if (published_year) query.where("books.published_year", published_year);
+      })
+      .count("books.id as total");
+
+    return { books, total };
   });
 }

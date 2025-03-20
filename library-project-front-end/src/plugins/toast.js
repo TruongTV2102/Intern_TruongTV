@@ -13,4 +13,10 @@ export const toast = {
       message,
     })
   },
+  warning: (message) => {
+    Notify.create({
+      type: 'warning',
+      message,
+    })
+  },
 }

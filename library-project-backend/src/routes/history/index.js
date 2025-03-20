@@ -21,13 +21,19 @@ export default async function historyRoutes(fastify) {
       const history = await db("borrow_items")
         .join("borrow_requests", "borrow_requests.id", "borrow_items.borrow_id")
         .join("books", "books.id", "borrow_items.book_id")
+        .join("genres", "genres.id", "books.genre_id")
         .where("borrow_requests.user_id", user_id)
         .select(
-          //"books.id as book_id",
+          "books.id as book_id",
+          "books.cover_image_url",
+          "books.author",
+          "genres.name as genre",
           "books.title",
+          "books.published_year",
           "borrow_items.status",
           "borrow_requests.borrow_date",
-          "borrow_items.return_date"
+          "borrow_items.return_date",
+          "borrow_items.due_date"
         )
         .orderBy("borrow_requests.borrow_date", "desc");
 

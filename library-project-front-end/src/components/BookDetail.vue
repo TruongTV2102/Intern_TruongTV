@@ -68,11 +68,11 @@ const emit = defineEmits(['update:isOpen'])
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 
-// Sử dụng computed thay vì ref + watch
 const localBook = computed(() => props.book)
 
 const submitAddToCart = () => {
-  cartStore.addBook(localBook.value)
+  cartStore.addBook(localBook.value) // Thêm sách vào giỏ hàng
+
   emit('update:isOpen', false)
 }
 </script>

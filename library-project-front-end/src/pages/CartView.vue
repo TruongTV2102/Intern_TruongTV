@@ -1,57 +1,98 @@
 <template>
-  <div class="tw-p-4">
-    <h1 class="tw-text-xl tw-font-bold tw-mb-4">Giỏ hàng</h1>
+  <q-page class="tw-p-4">
+    <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Giỏ hàng</h1>
 
-    <!-- Hiển thị khi giỏ hàng trống -->
-    <div v-if="cartStore.cart.length === 0" class="tw-text-gray-500">
-      Giỏ hàng của bạn đang trống.
-    </div>
+    <q-card v-if="cartStore.cart.length === 0" flat bordered class="tw-p-6 tw-text-center">
+      <q-icon name="shopping_cart" size="lg" color="gray" class="tw-mb-2" />
+      <p class="tw-text-gray-500">Giỏ hàng của bạn đang trống.</p>
+    </q-card>
 
-    <!-- Hiển thị danh sách sách trong giỏ hàng -->
-    <div v-else class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
-      <div
-        v-for="book in cartStore.cart"
-        :key="book.id"
-        class="tw-bg-white tw-p-4 tw-rounded-lg tw-shadow tw-min-w-[180px] tw-w-full"
-      >
-        <img
-          :src="book.cover_image_url"
-          class="tw-rounded-lg tw-mb-2 tw-w-full tw-h-[300px] tw-object-contain"
-        />
+    <q-table
+      v-else
+      style="height: 750px"
+      flat
+      bordered
+      :rows="rows"
+      :columns="columns"
+      row-key="index"
+      virtual-scroll
+      v-model:pagination="pagination"
+      :rows-per-page-options="[0]"
+    >
+      <template v-slot:body-cell-image="props">
+        <q-td :props="props">
+          <q-img
+            :src="
+              props.row.cover_image_url ||
+              'https://res.cloudinary.com/dp39ryiip/image/upload/v1742114106/afffiepjj3j41aqbp9td.jpg'
+            "
+            class="tw-w-16 tw-h-24 tw-object-cover tw-rounded-md"
+          />
+        </q-td>
+      </template>
 
-        <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.title }}</h3>
-        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Tác giả: {{ book.author }}</p>
-        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre }}</p>
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <q-btn
+            label="Xoá sách"
+            icon="delete"
+            color="red"
+            flat
+            round
+            size="sm"
+            @click="cartStore.removeBook(props.row.id)"
+          />
+        </q-td>
+      </template>
+    </q-table>
 
-        <q-btn
-          label="Xóa"
-          color="red"
-          class="tw-mt-2 tw-w-full"
-          @click="cartStore.removeBook(book.id)"
-        />
-      </div>
-    </div>
-
-    <!-- Nút Xóa tất cả & Xác nhận mượn -->
     <div class="tw-mt-6 tw-flex tw-justify-between">
       <q-btn
         label="Xóa tất cả"
         color="red"
+        icon="delete_sweep"
+        class="tw-px-4 tw-py-2"
         :disable="cartStore.cart.length === 0"
         @click="cartStore.clearCart"
       />
       <q-btn
         label="Xác nhận mượn"
         color="green"
+        icon="check_circle"
+        class="tw-px-4 tw-py-2"
         :disable="cartStore.cart.length === 0"
         @click="cartStore.borrowBooks"
       />
     </div>
-  </div>
+  </q-page>
 </template>
 
 <script setup>
+import { computed, ref } from 'vue'
 import { useCartStore } from 'src/stores/cartStore'
 
 const cartStore = useCartStore()
+
+const columns = [
+  { name: 'index', label: '#', align: 'left', field: 'index' },
+  { name: 'image', label: 'Ảnh', align: 'center', field: 'cover_image_url', sortable: false },
+  { name: 'title', label: 'Tên sách', align: 'left', field: 'title', sortable: true },
+  { name: 'author', label: 'Tác giả', align: 'left', field: 'author', sortable: true },
+  { name: 'genre', label: 'Thể loại', align: 'left', field: 'genre', sortable: true },
+  {
+    name: 'published_year',
+    label: 'Năm xuất bản',
+    align: 'center',
+    field: 'published_year',
+    sortable: true,
+  },
+  { name: 'actions', label: 'Hành động', align: 'center', field: 'actions', sortable: false },
+]
+
+// Tạo danh sách sách từ giỏ hàng
+const rows = computed(() => cartStore.cart.map((item, index) => ({ ...item, index: index + 1 })))
+
+const pagination = ref({
+  rowsPerPage: 20,
+})
 </script>
