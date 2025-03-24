@@ -24,9 +24,10 @@ export const useCartStore = defineStore('cartStore', () => {
       console.log('📌 Gọi API kiểm tra lịch sử mượn sách...')
 
       const { data } = await api.get(`/history/user/${authStore.user.id}`)
-      console.log('📌 Dữ liệu trả về từ API:', data)
 
-      const existingBook = data.find((item) => item.book_id === book.id)
+      const history = data.history || []
+
+      const existingBook = history.find((item) => item.book_id === book.id)
 
       if (existingBook) {
         if (existingBook.status === 'Pending') {

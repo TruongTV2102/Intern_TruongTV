@@ -12,7 +12,6 @@ import borrowRoutes from "./routes/borrowRequest/index.js";
 import returnRoutes from "./routes/returnrequest/index.js";
 import historyRoutes from "./routes/history/index.js";
 import uploadRoutes from "./routes/uploads/upload.js";
-import bookSearchRoutes from "./routes/bookSearch/bookSearch.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -95,7 +94,6 @@ fastify.register(bookRoutes);
 fastify.register(loginRoutes);
 fastify.register(userRoutes);
 fastify.register(uploadRoutes);
-fastify.register(bookSearchRoutes);
 fastify.register(borrowRoutes);
 fastify.register(returnRoutes);
 fastify.register(historyRoutes);

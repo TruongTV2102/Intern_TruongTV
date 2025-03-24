@@ -13,4 +13,7 @@ export const messageError = {
   passwordtype: 'Mật khẩu phải là một chuỗi.',
   passwordempty: 'Mật khẩu phải có ít nhất 6 ký tự.',
   confirmpasswordconst: 'Mật khẩu xác nhận không khớp.',
+  title: 'Tên sách không được để trống',
+  author: 'Tên tác giả phải là một chuỗi',
+  genre: ' Thể loại không được để trống',
 }

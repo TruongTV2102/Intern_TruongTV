@@ -24,11 +24,6 @@ const routes = [
         meta: { requiresAuth: true, requiresAdmin: true },
       },
       {
-        path: 'loanstatus',
-        component: () => import('src/pages/LoanBooks.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
         path: 'history',
         component: () => import('src/pages/BorrowHistory.vue'),
         meta: { requiresAuth: true },

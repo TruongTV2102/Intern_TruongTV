@@ -35,8 +35,18 @@ export async function getUsers() {
     "birthday",
     "phone",
     "role",
-    "is_active"
+    "is_active",
+    "avatar"
   );
+}
+
+export async function getUserById(id) {
+  try {
+    const user = await db("users").where({ id }).first();
+    return user || null;
+  } catch (error) {
+    throw new Error("Lỗi khi truy vấn database");
+  }
 }
 
 export async function updateUser(id, updatedData) {

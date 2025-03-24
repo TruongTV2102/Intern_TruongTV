@@ -78,7 +78,7 @@ const columns = [
   { name: 'image', label: 'Ảnh', align: 'center', field: 'cover_image_url', sortable: false },
   { name: 'title', label: 'Tên sách', align: 'left', field: 'title', sortable: true },
   { name: 'author', label: 'Tác giả', align: 'left', field: 'author', sortable: true },
-  { name: 'genre', label: 'Thể loại', align: 'left', field: 'genre', sortable: true },
+  { name: 'genre', label: 'Thể loại', align: 'left', field: 'genre_name', sortable: true },
   {
     name: 'published_year',
     label: 'Năm xuất bản',

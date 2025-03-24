@@ -1,12 +1,14 @@
 import db from "../../config/db.js";
 import { BorrowStatus } from "../../constants/enum.js";
 import { authenticate, authorizeAdmin } from "../login/auth.js";
+import { approveBorrowSchema, borrowRequestSchema } from "./schema.js";
 
 export default async function borrowRoutes(fastify) {
   // Gửi yêu cầu mượn sách
   fastify.post(
     "/borrow",
     {
+      schema: borrowRequestSchema,
       preValidation: [authenticate],
     },
     async (req, reply) => {
@@ -41,11 +43,12 @@ export default async function borrowRoutes(fastify) {
   fastify.put(
     "/approve-borrow/:borrow_item_id",
     {
+      schema: approveBorrowSchema,
       preValidation: [authenticate, authorizeAdmin],
     },
     async (req, reply) => {
       const { borrow_item_id } = req.params;
-      const { status } = req.body; // status: "Approved" hoặc "Rejected"
+      const { status } = req.body;
 
       let borrow_id;
 

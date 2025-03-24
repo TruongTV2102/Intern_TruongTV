@@ -87,15 +87,15 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { validateData } from 'src/schema/validator.js'
-import { useUserStore } from 'src/stores/userStore'
+import { useAuthStore } from 'src/stores/auth'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { changePasswordSchema } from 'src/schema/changePassword/validationSchema'
+import api from 'src/api'
 
-// Cấu trúc dữ liệu cho form
 const isPwd = ref(true)
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const formData = reactive({
   oldpassword: '',
@@ -105,19 +105,23 @@ const formData = reactive({
 
 const validationErrors = ref({})
 
-const onSubmit = () => {
+const onSubmit = async () => {
   const { errors, isValid } = validateData(formData, changePasswordSchema)
   validationErrors.value = errors
 
-  if (isValid) {
-    const isSuccess = userStore.changePassword(formData.oldpassword, formData.newpassword)
+  if (!isValid) return
 
-    if (isSuccess) {
-      toast.info('Đổi mật khẩu thành công!')
-      router.push('/')
-    } else {
-      toast.error('Mật khẩu cũ không đúng!')
-    }
+  try {
+    const { data } = await api.post('/change-password', {
+      email: authStore.user.email, // Lấy email từ auth
+      oldPassword: formData.oldpassword,
+      newPassword: formData.newpassword,
+    })
+
+    toast.info(data.message || 'Đổi mật khẩu thành công!')
+    router.push('/')
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Có lỗi xảy ra!')
   }
 }
 </script>

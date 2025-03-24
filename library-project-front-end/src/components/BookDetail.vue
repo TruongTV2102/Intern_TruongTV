@@ -6,7 +6,10 @@
           <!-- Ảnh sách bên trái -->
           <div class="tw-w-1/2">
             <img
-              :src="book?.cover_image_url"
+              :src="
+                book?.cover_image_url ||
+                'https://res.cloudinary.com/dp39ryiip/image/upload/v1742269732/ooe26eg7synamgmmycgk.jpg'
+              "
               class="tw-rounded-lg tw-w-full tw-h-[350px] tw-object-contain"
             />
           </div>

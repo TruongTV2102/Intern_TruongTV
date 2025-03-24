@@ -23,6 +23,14 @@
       outlined
       dense
     />
+    <q-input
+      v-model="search.status"
+      label="Trạng thái"
+      class="tw-w-full tw-max-w-xs"
+      outlined
+      dense
+    />
+
     <q-btn unelevated color="primary" icon="search" @click="emitSearch" />
   </div>
 </template>
@@ -36,6 +44,7 @@ const search = ref({
   author: '',
   genre: '',
   published_year: '',
+  status: '',
 })
 
 const genres = ref([])

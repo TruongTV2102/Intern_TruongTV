@@ -1,8 +1,6 @@
 import db from "../../config/db.js";
 
-/**
- * Kiểm tra genre, nếu chưa có thì thêm vào
- */
+// Kiểm tra genre, nếu chưa có thì thêm vào
 async function getOrCreateGenre(genre) {
   let [genreRecord] = await db("genres").where("name", genre).select("id");
   if (!genreRecord) {
@@ -12,12 +10,18 @@ async function getOrCreateGenre(genre) {
   return genreRecord;
 }
 
-/**
- * Thêm sách vào database
- */
+// Thêm sách vào database
 export async function addBook(bookData) {
-  const { title, author, genre, published_year, quantity, cover_image_url } =
-    bookData;
+  const {
+    title,
+    author,
+    genre,
+    published_year,
+    quantity,
+    total_quantity,
+    cover_image_url,
+    description,
+  } = bookData;
 
   const genreRecord = await getOrCreateGenre(genre);
 
@@ -27,16 +31,16 @@ export async function addBook(bookData) {
     genre_id: genreRecord.id,
     published_year,
     quantity,
-    total_quantity: quantity,
+    total_quantity,
     cover_image_url,
+    description,
   });
 
   return bookId;
 }
 
-/**
- * Lấy danh sách sách
- */
+// Lấy danh sách sách
+
 export async function getBooks({
   title,
   genre,
@@ -47,6 +51,7 @@ export async function getBooks({
 }) {
   const offset = (page - 1) * limit;
 
+  // Truy vấn danh sách sách
   const booksQuery = db("books")
     .leftJoin("genres", "books.genre_id", "genres.id")
     .select(
@@ -57,30 +62,21 @@ export async function getBooks({
       "books.quantity",
       "books.total_quantity",
       "books.cover_image_url",
-      "genres.name as genre_name"
+      "books.description",
+      "genres.name as genre"
     )
     .limit(limit)
     .offset(offset);
-  console.log(booksQuery);
 
   // Thêm điều kiện lọc nếu có
-  if (genre) {
-    booksQuery.whereILike("genres.name", genre);
-  }
-  if (author) {
-    booksQuery.whereILike("books.author", `%${author}%`);
-  }
-  if (title) {
-    booksQuery.whereILike("books.title", `%${title}%`);
-  }
-  if (published_year) {
-    booksQuery.where("books.published_year", published_year);
-  }
+  if (genre) booksQuery.whereILike("genres.name", genre);
+  if (author) booksQuery.whereILike("books.author", `%${author}%`);
+  if (title) booksQuery.whereILike("books.title", `%${title}%`);
+  if (published_year) booksQuery.where("books.published_year", published_year);
 
-  // Lấy danh sách sách
   const books = await booksQuery;
 
-  // Đếm tổng số sách phù hợp với bộ lọc
+  // Đếm tổng số sách
   const [{ total }] = await db("books")
     .leftJoin("genres", "books.genre_id", "genres.id")
     .modify((query) => {
@@ -96,7 +92,20 @@ export async function getBooks({
 
 export async function getBookById(id) {
   try {
-    const book = await db("books").where({ id }).first();
+    const book = await db("books")
+      .leftJoin("genres", "books.genre_id", "genres.id")
+      .select(
+        "books.title",
+        "books.author",
+        "books.published_year",
+        "books.quantity",
+        "books.total_quantity",
+        "books.cover_image_url",
+        "books.description",
+        "genres.name as genre"
+      )
+      .where("books.id", id)
+      .first();
     return book || null;
   } catch (error) {
     console.error("Lỗi lấy sách theo ID:", error);
@@ -104,27 +113,37 @@ export async function getBookById(id) {
   }
 }
 
-/**
- * Cập nhật thông tin sách
- */
+// Cập nhật thông tin sách
+
 export async function updateBook(bookId, bookData) {
-  const { title, author, genre, published_year, quantity, cover_image_url } =
-    bookData;
+  const {
+    title,
+    author,
+    genre,
+    published_year,
+    quantity,
+    total_quantity,
+    cover_image_url,
+    description,
+  } = bookData;
+  console.log(bookId);
+
   const genreRecord = await getOrCreateGenre(genre);
 
-  await db("books").where("id", bookId).update({
+  return await db("books").where("books.id", bookId).update({
     title,
     author,
     genre_id: genreRecord.id,
     published_year,
     quantity,
+    total_quantity,
     cover_image_url,
+    description,
   });
 }
 
-/**
- * Xóa sách theo ID
- */
+// Xóa sách theo ID
+
 export async function deleteBook(bookId) {
   const deletedRows = await db("books").where("id", bookId).del();
   if (!deletedRows) throw new Error("Sách không tồn tại");

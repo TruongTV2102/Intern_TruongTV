@@ -57,6 +57,7 @@ const handleSubmit = async () => {
       total_quantity: bookQuantity.value,
       cover_image_url: uploadedImageUrl, // 📌 Lưu trực tiếp URL vào `books`
     }
+    console.log(bookData)
 
     await axios.post('http://localhost:3000/books', bookData, {
       headers: {

@@ -83,16 +83,6 @@
             v-if="authStore.user.role === 'user'"
             clickable
             v-ripple
-            @click="goToPage('/loanstatus')"
-          >
-            <q-item-section avatar><q-icon name="book" /></q-item-section>
-            <q-item-section>Sách đang mượn</q-item-section>
-          </q-item>
-
-          <q-item
-            v-if="authStore.user.role === 'user'"
-            clickable
-            v-ripple
             @click="goToPage('/history')"
           >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
@@ -157,7 +147,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const goToPage = (path) => {
-  router.push(path)
+  // Nếu đường dẫn hiện tại (router.currentRoute.value.path) trùng với đường dẫn đang nhấn (path === '/'), thì trang sẽ reload.
+  // Nếu không, nó sẽ chuyển hướng như bình thường.
+  if (router.currentRoute.value.path === path) {
+    window.location.reload()
+  } else {
+    router.push(path)
+  }
 }
 
 const logout = () => {

@@ -1,6 +1,5 @@
 <template>
   <div class="tw-p-4">
-    <!-- Thanh tìm kiếm -->
     <BookSearchBar v-model:searchQuery="searchQuery" @search="resetPage" />
 
     <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
@@ -29,76 +28,54 @@
       </div>
     </div>
 
-    <!-- Chỉ hiển thị điều hướng trang khi có ít nhất 20 sách -->
-    <div v-if="total > limit" class="tw-mt-4 tw-flex tw-justify-center tw-gap-4">
-      <q-btn label="« Trước" color="blue" :disabled="page === 1" @click="prevPage" />
-      <span>Trang {{ page }} / {{ totalPages }}</span>
-      <q-btn label="Tiếp »" color="blue" :disabled="page === totalPages" @click="nextPage" />
-    </div>
+    <!-- Phân trang -->
+    <PaginationPage v-model:page="page" :total="total" :limit="limit" @update:page="fetchBooks" />
 
     <BookDetail v-model:isOpen="isModalOpen" :book="selectedBook" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { ref, watch } from 'vue'
+import api from 'src/api'
 import BookDetail from 'components/BookDetail.vue'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
+import PaginationPage from 'src/components/PaginationPage.vue'
 
-const route = useRoute()
 const books = ref([])
+const searchQuery = ref({})
 const isModalOpen = ref(false)
 const selectedBook = ref(null)
 const page = ref(1)
-const limit = 20
+const limit = 5
 const total = ref(0)
-
-const totalPages = computed(() => Math.ceil(total.value / limit))
 
 const fetchBooks = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/books', {
+    const res = await api.get('/books', {
       params: {
-        ...route.query,
+        ...searchQuery.value,
         page: page.value,
         limit,
       },
     })
     books.value = res.data.books
     total.value = res.data.total
-    console.log(res.data)
   } catch (error) {
     console.error('Lỗi khi tìm kiếm sách:', error)
   }
 }
 
-const nextPage = () => {
-  if (page.value < totalPages.value) {
-    page.value++
-    fetchBooks()
-  }
-}
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value--
-    fetchBooks()
-  }
-}
-
-// Reset page về 1 khi tìm kiếm mới
-const resetPage = () => {
+const resetPage = (query) => {
+  searchQuery.value = query
   page.value = 1
   fetchBooks()
 }
 
-// Mở modal chi tiết sách
 const openModal = (book) => {
   selectedBook.value = book
   isModalOpen.value = true
 }
 
-watch(() => route.query, resetPage, { immediate: true })
+watch(searchQuery, fetchBooks, { immediate: true })
 </script>
