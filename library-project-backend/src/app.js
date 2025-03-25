@@ -27,7 +27,7 @@ fastify.register(jwt, { secret: "supersecret" });
 // CORS cho phép frontend truy cập
 fastify.register(fastifyCors, {
   origin: "http://localhost:9000",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 });
 

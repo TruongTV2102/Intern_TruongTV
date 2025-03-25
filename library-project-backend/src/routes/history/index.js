@@ -117,4 +117,96 @@ export default async function historyRoutes(fastify) {
       return reply.send(history);
     }
   );
+
+  // Xem toàn bộ lịch sử mượn sách (chỉ admin được xem)
+  fastify.get(
+    "/history/all",
+    {
+      preHandler: [authenticate, authorizeAdmin],
+    },
+    async (req, reply) => {
+      const {
+        user_name,
+        title,
+        genre,
+        author,
+        published_year,
+        status,
+        page = 1,
+        limit = 10,
+        sort = "borrow_date", // Mặc định sắp xếp theo ngày mượn
+        order = "desc", // Mặc định giảm dần
+      } = req.query;
+
+      const offset = (page - 1) * limit;
+
+      // Các cột hợp lệ có thể sắp xếp
+      const validColumns = [
+        "title",
+        "user_name",
+        "author",
+        "genre",
+        "published_year",
+        "borrow_date",
+        "due_date",
+        "return_date",
+        "status",
+      ];
+      const sortColumn = validColumns.includes(sort) ? sort : "borrow_date";
+      const sortOrder = order === "asc" ? "asc" : "desc"; // Chỉ cho phép "asc" hoặc "desc"
+
+      const historyQuery = db("borrow_items")
+        .join("borrow_requests", "borrow_requests.id", "borrow_items.borrow_id")
+        .join("users", "users.id", "borrow_requests.user_id")
+        .join("books", "books.id", "borrow_items.book_id")
+        .join("genres", "genres.id", "books.genre_id")
+        .select(
+          "borrow_items.id",
+          "users.id as user_id",
+          "users.name as user_name",
+          "books.id as book_id",
+          "books.cover_image_url",
+          "books.title",
+          "books.author",
+          "genres.name as genre",
+          "books.published_year",
+          "borrow_requests.borrow_date",
+          "borrow_items.due_date",
+          "borrow_items.return_date",
+          "borrow_items.status"
+        )
+        .modify((query) => {
+          if (user_name) query.whereILike("users.name", `%${user_name}%`);
+          if (title) query.whereILike("books.title", `%${title}%`);
+          if (genre) query.whereILike("genres.name", `%${genre}%`);
+          if (author) query.whereILike("books.author", `%${author}%`);
+          if (published_year)
+            query.where("books.published_year", published_year);
+          if (status) query.where("borrow_items.status", status);
+        })
+        .orderBy(sortColumn, sortOrder) // Áp dụng sắp xếp
+        .limit(limit)
+        .offset(offset);
+
+      const history = await historyQuery;
+
+      const [{ total }] = await db("borrow_items")
+        .join("borrow_requests", "borrow_requests.id", "borrow_items.borrow_id")
+        .join("users", "users.id", "borrow_requests.user_id")
+        .join("books", "books.id", "borrow_items.book_id")
+        .join("genres", "genres.id", "books.genre_id")
+        .modify((query) => {
+          if (user_name) query.whereILike("users.name", `%${user_name}%`);
+          if (title) query.whereILike("books.title", `%${title}%`);
+          if (genre) query.whereILike("genres.name", `%${genre}%`);
+          if (author) query.whereILike("books.author", `%${author}%`);
+          if (published_year)
+            query.where("books.published_year", published_year);
+          if (status) query.where("borrow_items.status", status);
+        })
+        .count("borrow_items.id as total");
+
+      return { history, total };
+    }
+  );
 }

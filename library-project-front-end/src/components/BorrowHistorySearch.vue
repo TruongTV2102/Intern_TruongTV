@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 
 const search = ref({
   title: '',
@@ -57,7 +57,7 @@ const emitSearch = () => {
 
 const fetchGenres = async () => {
   try {
-    const response = await api.get('/genres')
+    const response = await api.get(API_ROUTES.GENRES)
     genres.value = response.data
   } catch (error) {
     console.error('Lỗi khi lấy danh sách thể loại:', error)

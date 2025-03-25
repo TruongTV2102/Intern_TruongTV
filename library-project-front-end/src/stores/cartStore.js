@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 import { toast } from 'src/plugins/toast'
 import { useAuthStore } from 'src/stores/auth'
 
@@ -83,7 +83,7 @@ export const useCartStore = defineStore('cartStore', () => {
         books: bookIds,
       }
 
-      await api.post('/borrow', requestData)
+      await api.post(API_ROUTES.BORROW, requestData)
       toast.info('Gửi yêu cầu mượn sách thành công!')
 
       clearCart() // Xóa giỏ hàng sau khi mượn thành công

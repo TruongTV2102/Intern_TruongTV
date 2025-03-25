@@ -17,7 +17,7 @@
         />
         <h3 class="tw-text-lg tw-font-bold tw-truncate">{{ book.title }}</h3>
         <p class="tw-text-sm tw-text-gray-600 tw-truncate">Tác giả: {{ book.author }}</p>
-        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre_name }}</p>
+        <p class="tw-text-sm tw-text-gray-600 tw-truncate">Thể loại: {{ book.genre }}</p>
         <p class="tw-text-sm tw-text-gray-600">Năm xuất bản: {{ book.published_year }}</p>
         <p class="tw-text-gray-700">
           <b>Số lượng sách:</b> {{ book.quantity }} / {{ book.total_quantity }}
@@ -43,7 +43,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 import BookDetail from 'components/BookDetail.vue'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
@@ -58,7 +58,7 @@ const total = ref(0)
 
 const fetchBooks = async () => {
   try {
-    const res = await api.get('/books', {
+    const res = await api.get(API_ROUTES.BOOKS, {
       params: {
         ...searchQuery.value,
         page: page.value,

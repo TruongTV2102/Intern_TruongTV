@@ -149,3 +149,39 @@ export async function deleteBook(bookId) {
   if (!deletedRows) throw new Error("Sách không tồn tại");
   return deletedRows;
 }
+
+export async function updateBorrowStatus(
+  id,
+  status,
+  fine = 0,
+  return_date = null
+) {
+  const book = await db("borrow_items").where("id", id).first();
+  if (!book) throw new Error("Không tìm thấy bản ghi");
+
+  const updates = { status };
+  if (return_date) updates.return_date = return_date;
+  if (fine) updates.fine = fine;
+
+  // // Nếu trạng thái là Approved, cập nhật due_date (thêm 1 tháng từ ngày hiện tại)
+  // if (status === "Approved") {
+  // }
+  // if (status === "Return") {
+  //   const returnDate = new Date();
+  //   updateData.return_date = returnDate;
+  // }
+
+  await db("borrow_items").where("id", id).update(updates);
+
+  // Cập nhật số lượng sách
+  if (status === "Approved") {
+    await db("books").where("id", book.book_id).decrement("quantity", 1);
+    updates.due_date = new Date();
+    updates.due_date.setMonth(updates.due_date.getMonth() + 1);
+  } else if (status === "Returned") {
+    await db("books").where("id", book.book_id).increment("quantity", 1);
+    updates.return_date = new Date(); // Cập nhật ngày trả khi trả sách
+  }
+
+  return await db("borrow_items").where({ id }).update(updates);
+}

@@ -19,8 +19,7 @@
             <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ localBook.name }}</h1>
             <p class="tw-text-gray-700"><b>Tác giả:</b> {{ localBook.author }}</p>
             <p class="tw-text-gray-700"><b>Thể loại:</b> {{ localBook.genre }}</p>
-            <p class="tw-text-gray-700"><b>Mã sách:</b> {{ localBook.bookcode }}</p>
-            <p class="tw-text-gray-700"><b>Năm xuất bản:</b> {{ localBook.year }}</p>
+            <p class="tw-text-gray-700"><b>Năm xuất bản:</b> {{ localBook.published_year }}</p>
             <p class="tw-text-gray-700">
               <b>Số lượng sách:</b> {{ localBook.quantity }} / {{ localBook.total_quantity }}
             </p>

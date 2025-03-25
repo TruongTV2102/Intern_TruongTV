@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 import BookDetail from 'components/BookDetail.vue'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
@@ -52,7 +52,7 @@ const total = ref(0)
 
 const fetchBooks = async () => {
   try {
-    const res = await api.get('/books', {
+    const res = await api.get(API_ROUTES.BOOKS, {
       params: {
         ...searchQuery.value,
         page: page.value,

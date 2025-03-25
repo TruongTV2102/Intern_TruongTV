@@ -10,11 +10,11 @@ export const bookSchema = {
     total_quantity: { type: 'integer', minimum: 1 },
     published_year: {
       type: 'integer',
-      minimum: 1000,
+      minimum: 0,
       maximum: new Date().getFullYear(),
     },
     description: { type: 'string' },
-    cover_image_url: {},
+    cover_image_url: { type: 'string' },
   },
   additionalProperties: false,
   allOf: [

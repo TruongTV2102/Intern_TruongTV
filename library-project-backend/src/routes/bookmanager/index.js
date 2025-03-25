@@ -4,6 +4,7 @@ import {
   updateBook,
   deleteBook,
   getBooks,
+  updateBorrowStatus,
 } from "./service.js";
 import { bookSchema } from "./schema.js";
 import { authenticate, authorizeAdmin } from "../login/auth.js";
@@ -66,6 +67,21 @@ export default async function bookRoutes(fastify) {
     } catch (error) {
       console.error("Lỗi khi lấy danh sách thể loại:", error);
       return reply.status(500).send({ error: "Lỗi server" });
+    }
+  });
+
+  //Cập nhật status sách mượn
+
+  fastify.put("/borrow_status/:id", async (req, reply) => {
+    const { id } = req.params;
+    const { status, fine, return_date } = req.body;
+
+    try {
+      const result = await updateBorrowStatus(id, status, fine, return_date);
+      return reply.send(result);
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái:", error);
+      reply.code(500).send({ error: "Lỗi khi cập nhật trạng thái" });
     }
   });
 }

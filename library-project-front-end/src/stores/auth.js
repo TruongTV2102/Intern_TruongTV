@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user')) || null)
@@ -8,7 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await api.post('/login', { email, password })
+      const { data } = await api.post(API_ROUTES.LOGIN, { email, password })
       token.value = data.token
       localStorage.setItem('token', data.token)
 
@@ -23,9 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     try {
-      const { data } = await api.get('/profile', {
-        headers: { Authorization: `Bearer ${token.value}` },
-      })
+      const { data } = await api.get(API_ROUTES.PROFILE)
       user.value = data.user
       console.log(data.user)
 

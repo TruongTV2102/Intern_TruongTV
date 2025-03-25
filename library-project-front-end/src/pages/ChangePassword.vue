@@ -91,7 +91,7 @@ import { useAuthStore } from 'src/stores/auth'
 import { toast } from 'src/plugins/toast'
 import { useRouter } from 'vue-router'
 import { changePasswordSchema } from 'src/schema/changePassword/validationSchema'
-import api from 'src/api'
+import { api, API_ROUTES } from 'src/api'
 
 const isPwd = ref(true)
 const router = useRouter()
@@ -112,7 +112,7 @@ const onSubmit = async () => {
   if (!isValid) return
 
   try {
-    const { data } = await api.post('/change-password', {
+    const { data } = await api.post(API_ROUTES.CHANGE_PASSWORD, {
       email: authStore.user.email, // Lấy email từ auth
       oldPassword: formData.oldpassword,
       newPassword: formData.newpassword,

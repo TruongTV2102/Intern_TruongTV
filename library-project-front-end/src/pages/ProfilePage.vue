@@ -59,7 +59,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from 'src/api'
+import { api } from 'src/api'
 import { toast } from 'src/plugins/toast'
 import { useAuthStore } from 'src/stores/auth'
 import { formatDate } from 'src/utils/dateUtils'

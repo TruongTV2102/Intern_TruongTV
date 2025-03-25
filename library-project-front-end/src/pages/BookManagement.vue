@@ -132,10 +132,43 @@
             :columns="historyColumns"
             row-key="id"
             :loading="loadingHistory"
-          />
+            ><template v-slot:header-cell-status>
+              <q-th>
+                Trạng thái
+                <q-btn flat dense icon="filter_list">
+                  <q-menu>
+                    <q-list>
+                      <q-item
+                        clickable
+                        v-for="option in statusOptions"
+                        :key="option.value"
+                        @click="updateStatusFilter(option.value)"
+                      >
+                        <q-item-section>{{ option.label }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </q-th>
+            </template>
+          </q-table>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Đóng" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Popup xác nhận thêm/sửa/xóa -->
+    <q-dialog v-model="confirmDialog">
+      <q-card class="tw-p-4">
+        <q-card-section>
+          <h2 class="tw-text-lg tw-font-bold">Xác nhận</h2>
+          <p>{{ confirmMessage }}</p>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Hủy" v-close-popup />
+          <q-btn color="red" label="Đồng ý" @click="executeAction" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -144,8 +177,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from 'src/api'
-import axios from 'axios'
+import { api, API_ROUTES } from 'src/api/index.js'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
 import { toast } from 'src/plugins/toast'
@@ -158,7 +190,7 @@ const { selectedFile, previewUrl, handleFileChange, uploadImage } = useUploadIma
 const books = ref([])
 const total = ref(0)
 const page = ref(1)
-const limit = 10
+const limit = 2
 const search = ref({})
 const loading = ref(false)
 const showFormDialog = ref(false)
@@ -202,7 +234,9 @@ const columns = [
 const fetchBooks = async () => {
   loading.value = true
   try {
-    const res = await api.get('/books', { params: { ...search.value, page: page.value, limit } })
+    const res = await api.get(API_ROUTES.BOOKS, {
+      params: { ...search.value, page: page.value, limit },
+    })
     books.value = res.data.books
     total.value = res.data.total
   } catch (error) {
@@ -238,7 +272,7 @@ const addBook = () => {
 const editBook = async (book) => {
   try {
     selectedBook.value = book
-    const res = await api.get(`/books/${book.id}`)
+    const res = await api.get(API_ROUTES.BOOK_DETAIL(book.id))
     form.value = res.data || { ...book } // Lấy dữ liệu từ API nếu có
     console.log(form.value)
 
@@ -254,50 +288,48 @@ const editBook = async (book) => {
 const validationErrors = ref({})
 
 const saveBook = async () => {
-  console.log(form.value)
   const { errors, isValid } = validateData(form.value, bookSchema)
   validationErrors.value = errors
-  console.log(validationErrors.value)
-  console.log(isValid)
 
   if (isValid) {
-    try {
-      const uploadedImageUrl = await uploadImage()
-      form.value.cover_image_url = uploadedImageUrl
-      console.log(form.value)
-      if (uploadedImageUrl) {
-        const bookData = form.value
-        console.log(bookData)
-        console.log(2)
+    showConfirmDialog(
+      selectedBook.value
+        ? 'Bạn có chắc chắn muốn sửa sách này?'
+        : 'Bạn có chắc chắn muốn thêm sách này?',
+      async () => {
+        try {
+          const uploadedImageUrl = await uploadImage()
+          form.value.cover_image_url = uploadedImageUrl || form.value.cover_image_url
+          const bookData = form.value
 
-        selectedBook.value
-          ? await api.put(`/books/${selectedBook.value.id}`, bookData)
-          : await api.post('/books', bookData)
+          selectedBook.value
+            ? await api.put(API_ROUTES.BOOK_DETAIL(selectedBook.value.id), bookData)
+            : await api.post(API_ROUTES.BOOKS, bookData)
 
-        toast.info('Lưu sách thành công!')
-        showFormDialog.value = false
-        fetchBooks()
-      }
-    } catch (error) {
-      console.error('Lỗi khi lưu sách:', error)
-      toast.error('Không thể lưu sách!')
-    }
+          toast.info(selectedBook.value ? 'Sửa sách thành công!' : 'Thêm sách thành công!')
+          showFormDialog.value = false
+          fetchBooks()
+        } catch (error) {
+          console.error('Lỗi khi lưu sách:', error)
+          toast.error('Không thể lưu sách!')
+        }
+      },
+    )
   }
 }
 
 // API - Xóa sách
 const deleteBook = async (id) => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) throw new Error('Không tìm thấy token!')
-
-    await axios.delete(`http://localhost:3000/books/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    fetchBooks()
-  } catch (error) {
-    console.error('Lỗi khi xóa sách:', error)
-  }
+  showConfirmDialog('Bạn có chắc chắn muốn xóa sách này?', async () => {
+    try {
+      await api.delete(`/books/${id}`)
+      toast.info('Xóa sách thành công!')
+      fetchBooks()
+    } catch (error) {
+      console.error('Lỗi khi xóa sách:', error)
+      toast.error('Không thể xóa sách!')
+    }
+  })
 }
 
 const showHistoryDialog = ref(false)
@@ -305,7 +337,7 @@ const borrowHistory = ref([])
 const loadingHistory = ref(false)
 
 const historyColumns = [
-  { name: 'user', label: 'Người mượn', align: 'left', field: 'user_name' },
+  { name: 'user', label: 'Người mượn', align: 'left', field: 'name' },
   { name: 'borrow_date', label: 'Ngày mượn', align: 'center', field: 'borrow_date' },
   { name: 'due_date', label: 'Ngày trả dự kiến', align: 'center', field: 'due_date' },
   { name: 'return_date', label: 'Ngày trả thực tế', align: 'center', field: 'return_date' },
@@ -317,13 +349,44 @@ const viewBorrowHistory = async (bookId) => {
   loadingHistory.value = true
 
   try {
-    const res = await api.get(`/history/book/${bookId}`)
-    borrowHistory.value = res.data.history
+    const res = await api.get(API_ROUTES.HISTORY_BOOK(bookId))
+    borrowHistory.value = res.data
+    console.log(res.data)
   } catch (error) {
     console.error('Lỗi khi lấy lịch sử mượn:', error)
   } finally {
     loadingHistory.value = false
   }
+}
+
+const statusOptions = [
+  { label: 'Tất cả', value: '' },
+  { label: 'Đang chờ', value: 'Pending' },
+  { label: 'Đã duyệt', value: 'Approved' },
+  { label: 'Đã trả', value: 'Returned' },
+  { label: 'Mất', value: 'Lost' },
+  { label: 'Bị từ chối', value: 'Rejected' },
+]
+
+const updateStatusFilter = (status) => {
+  search.value.status = status
+  page.value = 1
+  viewBorrowHistory()
+}
+
+const confirmDialog = ref(false)
+const confirmAction = ref(null)
+const confirmMessage = ref('')
+
+const showConfirmDialog = (message, action) => {
+  confirmMessage.value = message
+  confirmAction.value = action
+  confirmDialog.value = true
+}
+
+const executeAction = () => {
+  if (confirmAction.value) confirmAction.value()
+  confirmDialog.value = false
 }
 
 onMounted(fetchBooks)

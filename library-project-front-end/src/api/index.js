@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: 'http://127.0.0.1:3000', // Địa chỉ backend Fastify
   timeout: 1000,
   headers: { 'Content-Type': 'application/json' },
@@ -17,4 +17,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 )
 
-export default api //
+export const API_ROUTES = {
+  BOOKS: '/books',
+  BOOK_DETAIL: (id) => `/books/${id}`,
+  HISTORY_USER: (id) => `/history/user/${id}`,
+  HISTORY_BOOK: (id) => `/history/book/${id}`,
+  GENRES: '/genres',
+  PROFILE: '/profile',
+  CHANGE_PASSWORD: '/change-password',
+  LOGIN: '/login',
+  BORROW: '/borrow',
+}
