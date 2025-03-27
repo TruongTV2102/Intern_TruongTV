@@ -11,12 +11,12 @@ import userRoutes from "./routes/users/index.js";
 import borrowRoutes from "./routes/borrowRequest/index.js";
 import returnRoutes from "./routes/returnrequest/index.js";
 import historyRoutes from "./routes/history/index.js";
-import uploadRoutes from "./routes/uploads/upload.js";
 
 const fastify = Fastify({ logger: true });
 
 // Cấu hình AJV cho validation
-const ajv = new Ajv({ allErrors: true, strict: false });
+// coerceTypes dùng để ép kiểu dữ liệu vì khi truyền dữ liệu từ param sang back nó sẽ tự chuyển sang string hết
+const ajv = new Ajv({ allErrors: true, strict: false, coerceTypes: true });
 ajvErrors(ajv);
 addFormats(ajv);
 fastify.setValidatorCompiler(({ schema }) => ajv.compile(schema));
@@ -93,7 +93,6 @@ fastify.addHook("onError", async (req, reply, error) => {
 fastify.register(bookRoutes);
 fastify.register(loginRoutes);
 fastify.register(userRoutes);
-fastify.register(uploadRoutes);
 fastify.register(borrowRoutes);
 fastify.register(returnRoutes);
 fastify.register(historyRoutes);

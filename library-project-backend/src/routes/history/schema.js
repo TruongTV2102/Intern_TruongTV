@@ -1,51 +1,31 @@
 export const userHistorySchema = {
-  params: {
-    type: "object",
-    properties: {
-      user_id: { type: "integer" },
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    genre: { type: "string" },
+    author: { type: "string" },
+    published_year: { type: ["integer", "null"] },
+    status: {
+      type: "string",
+      enum: ["Pending", "Approved", "Rejected", "Returned", "Lost"],
     },
-    required: ["user_id"],
-  },
-  querystring: {
-    type: "object",
-    properties: {
-      title: { type: "string" },
-      genre: { type: "string" },
-      author: { type: "string" },
-      published_year: { type: "integer" },
-      status: {
-        type: "string",
-        enum: ["Pending", "Approved", "Returned", "Lost", "Rejected"],
-      },
-      page: { type: "integer", minimum: 1, default: 1 },
-      limit: { type: "integer", minimum: 1, default: 8 },
+    page: { type: "integer", minimum: 1, default: 1 },
+    limit: { type: "integer", minimum: 1, default: 10 },
+    sortBy: {
+      type: "string",
+      enum: [
+        "title",
+        "author",
+        "genre",
+        "published_year",
+        "borrow_date",
+        "due_date",
+        "return_date",
+        "status",
+      ],
+      default: "borrow_date",
     },
-  },
-  response: {
-    200: {
-      type: "object",
-      properties: {
-        history: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              book_id: { type: "integer" },
-              cover_image_url: { type: "string" },
-              author: { type: "string" },
-              genre: { type: "string" },
-              title: { type: "string" },
-              published_year: { type: "integer" },
-              status: { type: "string" },
-              borrow_date: { type: "string", format: "date-time" },
-              due_date: { type: "string", format: "date-time" },
-              return_date: { type: ["string", "null"], format: "date-time" },
-            },
-          },
-        },
-        total: { type: "integer" },
-      },
-    },
+    descending: { type: "boolean", default: false },
   },
 };
 
@@ -71,5 +51,38 @@ export const bookHistorySchema = {
         },
       },
     },
+  },
+};
+
+export const historyQuerySchema = {
+  type: "object",
+  properties: {
+    user_name: { type: "string" },
+    title: { type: "string" },
+    genre: { type: "string" },
+    author: { type: "string" },
+    published_year: { type: ["integer", "null"] },
+    status: {
+      type: "string",
+      enum: ["Pending", "Approved", "Rejected", "Returned", "Lost"],
+    },
+    page: { type: "integer", minimum: 1, default: 1 },
+    limit: { type: "integer", minimum: 1, default: 10 },
+    sortBy: {
+      type: "string",
+      enum: [
+        "title",
+        "user_name",
+        "author",
+        "genre",
+        "published_year",
+        "borrow_date",
+        "due_date",
+        "return_date",
+        "status",
+      ],
+      default: "borrow_date",
+    },
+    descending: { type: "boolean", default: false },
   },
 };

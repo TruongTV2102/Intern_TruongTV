@@ -48,10 +48,13 @@ export async function getBooks({
   published_year,
   page = 1,
   limit = 8,
+  sortBy = "books.id",
+  descending = false,
 }) {
   const offset = (page - 1) * limit;
+  const order = descending ? "desc" : "asc";
+  console.log(order);
 
-  // Truy vấn danh sách sách
   const booksQuery = db("books")
     .leftJoin("genres", "books.genre_id", "genres.id")
     .select(
@@ -65,29 +68,31 @@ export async function getBooks({
       "books.description",
       "genres.name as genre"
     )
-    .limit(limit)
-    .offset(offset);
-
-  // Thêm điều kiện lọc nếu có
-  if (genre) booksQuery.whereILike("genres.name", genre);
-  if (author) booksQuery.whereILike("books.author", `%${author}%`);
-  if (title) booksQuery.whereILike("books.title", `%${title}%`);
-  if (published_year) booksQuery.where("books.published_year", published_year);
-
-  const books = await booksQuery;
-
-  // Đếm tổng số sách
-  const [{ total }] = await db("books")
-    .leftJoin("genres", "books.genre_id", "genres.id")
     .modify((query) => {
-      if (genre) query.whereILike("genres.name", genre);
+      if (genre) query.whereILike("genres.name", `%${genre}%`);
       if (author) query.whereILike("books.author", `%${author}%`);
       if (title) query.whereILike("books.title", `%${title}%`);
       if (published_year) query.where("books.published_year", published_year);
     })
-    .count("books.id as total");
+    .orderBy(sortBy, order)
+    .limit(limit)
+    .offset(offset);
+  console.log(booksQuery.toQuery());
 
-  return { books, total };
+  const countQuery = db("books")
+    .leftJoin("genres", "books.genre_id", "genres.id")
+    .modify((query) => {
+      if (genre) query.whereILike("genres.name", `%${genre}%`);
+      if (author) query.whereILike("books.author", `%${author}%`);
+      if (title) query.whereILike("books.title", `%${title}%`);
+      if (published_year) query.where("books.published_year", published_year);
+    })
+    .count("books.id as total")
+    .first();
+
+  const [books, totalData] = await Promise.all([booksQuery, countQuery]);
+
+  return { books, total: totalData.total };
 }
 
 export async function getBookById(id) {
@@ -163,14 +168,6 @@ export async function updateBorrowStatus(
   if (return_date) updates.return_date = return_date;
   if (fine) updates.fine = fine;
 
-  // // Nếu trạng thái là Approved, cập nhật due_date (thêm 1 tháng từ ngày hiện tại)
-  // if (status === "Approved") {
-  // }
-  // if (status === "Return") {
-  //   const returnDate = new Date();
-  //   updateData.return_date = returnDate;
-  // }
-
   await db("borrow_items").where("id", id).update(updates);
 
   // Cập nhật số lượng sách
@@ -184,4 +181,34 @@ export async function updateBorrowStatus(
   }
 
   return await db("borrow_items").where({ id }).update(updates);
+}
+
+// Hàm nhập sách từ CSV
+export async function importBooks(books) {
+  for (const book of books) {
+    const {
+      title,
+      author,
+      genre,
+      published_year,
+      quantity,
+      total_quantity,
+      description,
+      cover_image_url,
+    } = book;
+
+    // Lấy genre_id
+    const genreRecord = await getOrCreateGenre(genre);
+
+    await db("books").insert({
+      title,
+      author,
+      genre_id: genreRecord.id, // Dùng genre_id thay vì genre
+      published_year: parseInt(published_year, 10) || null,
+      quantity: parseInt(quantity, 10) || 0,
+      total_quantity: parseInt(total_quantity, 10) || 0,
+      description,
+      cover_image_url: cover_image_url || "default.jpg", // Nếu không có ảnh, dùng mặc định
+    });
+  }
 }

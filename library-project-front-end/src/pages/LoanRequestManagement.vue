@@ -14,7 +14,9 @@
       :columns="columns"
       row-key="id"
       virtual-scroll
-      :rows-per-page-options="[20]"
+      :rows-per-page-options="[0]"
+      v-model:pagination="pagination"
+      @update:pagination="updateSort"
     >
       <template v-slot:header-cell-status>
         <q-th>
@@ -96,6 +98,7 @@ import { api } from 'src/api'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
 import { formatDate } from 'src/utils/dateUtils'
+import { toast } from 'src/plugins/toast'
 
 const borrowHistory = ref([])
 const total = ref(0)
@@ -152,11 +155,17 @@ const statusOptions = [
 const fetchBorrowHistory = async () => {
   try {
     const res = await api.get('/history/all', {
-      params: { ...search.value, page: page.value, limit },
+      params: {
+        ...search.value,
+        page: page.value,
+        limit,
+        sortBy: sortBy.value,
+        descending: descending.value,
+      },
     })
     borrowHistory.value = res.data.history.map((item) => ({
       ...item,
-      fine: calculateFine(item), // Tính tiền phạt ngay khi load dữ liệu
+      fine: calculateFine(item),
     }))
     total.value = res.data.total
   } catch (error) {
@@ -173,20 +182,22 @@ const updateSearch = (newSearch) => {
 const updateStatus = async (book, status) => {
   console.log('ID nhận được:', book.id)
   try {
-    await api.put(`/borrow_status/${book.id}`, { status })
+    await api.put(`/approve-borrow/${book.id}`, { status })
     fetchBorrowHistory()
   } catch (error) {
+    toast.error(error.response?.data?.message)
     console.error('Lỗi khi cập nhật trạng thái:', error)
   }
 }
 
 const calculateFine = (row) => {
-  if (!row.return_date || !row.due_date) return 0
+  if (!row.due_date) return 0
   const dueDate = new Date(row.due_date)
   const now = new Date()
   if (now <= dueDate) return 0
   const hoursLate = Math.ceil((now - dueDate) / (1000 * 60 * 60))
   console.log(1, hoursLate)
+  console.log(hoursLate * 500)
 
   return hoursLate * 500
 }
@@ -196,7 +207,7 @@ const formatCurrency = (amount) => amount.toLocaleString('vi-VN') + ' đ'
 const handleReturnBook = async (book) => {
   const fineAmount = calculateFine(book)
   try {
-    await api.put(`/borrow_status/${book.id}`, { status: 'Returned', fine: fineAmount })
+    await api.put(`/approve-borrow/${book.id}`, { status: 'Returned', fine: fineAmount })
     fetchBorrowHistory()
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái:', error)
@@ -206,6 +217,21 @@ const handleReturnBook = async (book) => {
 const updateStatusFilter = (status) => {
   search.value.status = status
   page.value = 1
+  fetchBorrowHistory()
+}
+
+const sortBy = ref('borrow_date') // Cột mặc định để sắp xếp
+const descending = ref(false) // Sắp xếp tăng dần hoặc giảm dần
+
+const pagination = ref({
+  sortBy: 'borrow_date',
+  descending: false,
+})
+
+const updateSort = (val) => {
+  sortBy.value = val.sortBy
+  descending.value = val.descending
+
   fetchBorrowHistory()
 }
 

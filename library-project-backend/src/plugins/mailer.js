@@ -15,5 +15,4 @@ export default fastifyPlugin(async function (fastify) {
       },
     },
   });
-  console.log(process.env.SENDGRID_API_KEY);
 });

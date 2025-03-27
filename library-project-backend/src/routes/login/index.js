@@ -9,6 +9,8 @@ export default async function loginRoutes(fastify) {
     const user = await findUser(email);
     if (!user) throw new Error("Email hoặc mật khẩu không đúng");
 
+    if (user.delete_user) throw new Error("Tài khoản đã bị xóa");
+
     // Kiểm tra nếu tài khoản bị vô hiệu hóa
     if (!user.is_active)
       throw new Error("Tài khoản của bạn chưa được kích hoạt");
@@ -32,12 +34,26 @@ export default async function loginRoutes(fastify) {
         email: user.email,
         name: user.name,
         role: user.role,
+        avatar: user.avatar,
       },
     };
   });
 
   fastify.get("/profile", async (request) => {
     await request.jwtVerify();
-    return { user: request.user };
+
+    // Lấy user đầy đủ từ database nếu cần
+    const user = await findUser(request.user.email);
+    if (!user) throw new Error("Không tìm thấy thông tin người dùng");
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar, // 🟢 Trả về avatar trong profile
+      },
+    };
   });
 }

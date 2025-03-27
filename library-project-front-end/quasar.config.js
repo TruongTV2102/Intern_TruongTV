@@ -84,6 +84,17 @@ export default defineConfig((/* ctx */) => {
           timeout: 1000,
           // color: 'info',
         },
+        brand: {
+          primary: '#1976D2', // Màu chính
+          secondary: '#26A69A',
+          accent: '#9C27B0',
+          white: '#ffffff',
+          dark: '#1D1D1D',
+          positive: '#21BA45',
+          negative: '#C10015',
+          info: '#31CCEC',
+          warning: '#F2C037',
+        },
       },
 
       // iconSet: 'material-icons', // Quasar icon set

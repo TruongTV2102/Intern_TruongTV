@@ -28,6 +28,8 @@ export const useCartStore = defineStore('cartStore', () => {
       const history = data.history || []
 
       const existingBook = history.find((item) => item.book_id === book.id)
+      console.log('📌 Gọi API kiểm tra lịch sử mượn sách...', existingBook)
+      console.log('history', history)
 
       if (existingBook) {
         if (existingBook.status === 'Pending') {

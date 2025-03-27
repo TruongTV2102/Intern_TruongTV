@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export const api = axios.create({
   baseURL: 'http://127.0.0.1:3000', // Địa chỉ backend Fastify
-  timeout: 1000,
+  timeout: 5000,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -27,4 +27,7 @@ export const API_ROUTES = {
   CHANGE_PASSWORD: '/change-password',
   LOGIN: '/login',
   BORROW: '/borrow',
+  IMPORT_CSV: '/books/import',
+  USERS: '/users',
+  EACH_USERS: (id) => `/users/${id}`,
 }

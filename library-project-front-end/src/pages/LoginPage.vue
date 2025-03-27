@@ -11,6 +11,7 @@
         <div class="q-gutter-y-md column tw-space-y-4">
           <!-- Email -->
           <q-input
+            outlined
             ref="emailInput"
             filled
             v-model="formData.email"
@@ -62,7 +63,7 @@
         </p>
         <p
           class="tw-text-blue-600 hover:tw-underline tw-cursor-pointer"
-          @click="goToPage('/forgorpassword')"
+          @click="goToPage('/forgotpassword')"
         >
           Forgot password?
         </p>
@@ -76,14 +77,12 @@ import { validateData } from 'src/schema/validator'
 import { toast } from 'src/plugins/toast'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-// import { useUserStore } from 'src/stores/userStore'
 import { loginSchema } from 'src/schema/login/validationSchema'
 import { useAuthStore } from 'src/stores/auth'
 
 const router = useRouter()
 const isPwd = ref(true)
 const rememberMe = ref(false)
-// const userStore = useUserStore()
 const authStore = useAuthStore()
 
 const formData = reactive({

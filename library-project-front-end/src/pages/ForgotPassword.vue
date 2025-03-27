@@ -36,7 +36,9 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { validateData } from 'src/schema/validator.js'
-import { getLoginList } from 'src/utils/loginData'
+import { forgotPasswordSchema } from 'src/schema/forgotPassword/validationSchema'
+import { api } from 'src/api'
+import { toast } from 'src/plugins/toast'
 
 const formData = reactive({
   email: '',
@@ -44,50 +46,25 @@ const formData = reactive({
 
 const validationErrors = ref({})
 const message = ref('')
-
-const schema = {
-  type: 'object',
-  properties: {
-    email: {
-      type: 'string',
-      format: 'email',
-      minLength: 1,
-      errorMessage: {
-        type: 'Email phải là một chuỗi.',
-        format: 'Email không hợp lệ.',
-        minLength: 'Email không được để trống.',
-      },
-    },
-  },
-}
-
-// Hàm tạo mật khẩu ngẫu nhiên
-const generateRandomPassword = () => {
-  return Math.random().toString(36).slice(-8) // Lấy 8 ký tự ngẫu nhiên
-}
+const loading = ref(false)
 
 // Hàm xử lý khi submit form
-const onSubmit = () => {
-  const { errors, isValid } = validateData(formData, schema)
+const onSubmit = async () => {
+  const { errors, isValid } = validateData(formData, forgotPasswordSchema)
   validationErrors.value = errors || {}
 
   if (isValid) {
-    const users = getLoginList()
-    const user = users.find((u) => u.email === formData.email)
+    loading.value = true
+    try {
+      const response = await api.post('/reset-password', {
+        email: formData.email,
+      })
 
-    if (user) {
-      // Tạo mật khẩu mới và cập nhật
-      const newPassword = generateRandomPassword()
-      user.password = newPassword
-
-      // Cập nhật danh sách người dùng
-      localStorage.setItem('loginList', JSON.stringify(users))
-
-      console.log(`Gửi email đến ${user.email}: Mật khẩu mới của bạn là ${newPassword}`)
-
-      message.value = `Mật khẩu mới đã được gửi đến email: ${user.email}`
-    } else {
-      message.value = 'Email không tồn tại trong hệ thống.'
+      toast.info(response.data.message)
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.')
+    } finally {
+      loading.value = false
     }
   }
 }

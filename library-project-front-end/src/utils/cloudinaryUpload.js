@@ -5,7 +5,8 @@ export function useUploadImage() {
   const previewUrl = ref('')
   const uploadedUrl = ref('')
 
-  // Xem trước ảnh khi chọn file
+  // Xem trước ảnh khi chọn file dùng q-file( nếu dùng input file thì const handleFileChange = (event) => {const file = event.target.files[0] // Lấy file đầu tiên)
+
   const handleFileChange = (file) => {
     console.log(file)
 

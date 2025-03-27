@@ -13,6 +13,7 @@ import {
   resetPassword,
   getUserById,
 } from "./service.js";
+import db from "../../config/db.js";
 
 export default async function userRoutes(fastify) {
   // Đăng ký
@@ -89,6 +90,26 @@ export default async function userRoutes(fastify) {
     }
   );
 
+  //Cập nhật status user
+  fastify.put("/users/status/:id", async (request, reply) => {
+    const { id } = request.params;
+    const { is_active } = request.body;
+
+    // Kiểm tra id có tồn tại không
+    const user = await db("users").where({ id }).first();
+    if (!user) {
+      return reply.code(404).send({ error: "Người dùng không tồn tại" });
+    }
+
+    // Cập nhật trạng thái is_active
+    await db("users").where({ id }).update({ is_active });
+
+    return reply.send({
+      message: "Cập nhật trạng thái thành công",
+      is_active,
+    });
+  });
+
   // Xóa người dùng
   fastify.delete(
     "/users/:id",
@@ -122,9 +143,12 @@ export default async function userRoutes(fastify) {
     "/reset-password",
     { schema: { body: resetPasswordSchema } },
     async (req, reply) => {
-      const { email } = req.body;
-      const message = await resetPassword(fastify, email);
-      return reply.send({ message });
+      try {
+        const message = await resetPassword(fastify, req.body.email);
+        return reply.send({ message });
+      } catch (error) {
+        return reply.status(400).send({ message: error.message });
+      }
     }
   );
 }

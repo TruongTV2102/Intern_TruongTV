@@ -168,6 +168,6 @@ onMounted(() => {
   }
 })
 
-console.log(useAuthStore().user)
+console.log('Thông', useAuthStore().user)
 // console.log(authStore.user.role)
 </script>

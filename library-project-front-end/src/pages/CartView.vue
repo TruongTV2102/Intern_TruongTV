@@ -57,19 +57,34 @@
       />
       <q-btn
         label="Xác nhận mượn"
-        color="green"
+        color="primary"
         icon="check_circle"
         class="tw-px-4 tw-py-2"
         :disable="cartStore.cart.length === 0"
-        @click="cartStore.borrowBooks"
+        @click="confirmDialog = true"
       />
     </div>
+
+    <!-- Dialog xác nhận -->
+    <q-dialog v-model="confirmDialog">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Xác nhận</div>
+        </q-card-section>
+        <q-card-section> Bạn có chắc chắn muốn xác nhận đơn hàng này không? </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Hủy" v-close-popup />
+          <q-btn color="primary" label="Đồng ý" @click="confirmBorrow" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { useCartStore } from 'src/stores/cartStore'
+import { toast } from 'src/plugins/toast'
 
 const cartStore = useCartStore()
 
@@ -92,7 +107,22 @@ const columns = [
 // Tạo danh sách sách từ giỏ hàng
 const rows = computed(() => cartStore.cart.map((item, index) => ({ ...item, index: index + 1 })))
 
+// Pagination
 const pagination = ref({
   rowsPerPage: 20,
 })
+
+// Biến kiểm soát Dialog
+const confirmDialog = ref(false)
+
+// Xác nhận mượn sách
+const confirmBorrow = async () => {
+  try {
+    await cartStore.borrowBooks()
+    toast.info('Xác nhận mượn thành công!')
+    confirmDialog.value = false
+  } catch (error) {
+    toast.error(error || 'Có lỗi xảy ra, vui lòng thử lại.')
+  }
+}
 </script>

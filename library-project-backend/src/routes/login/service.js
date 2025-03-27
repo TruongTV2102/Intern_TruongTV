@@ -2,7 +2,7 @@ import db from "../../config/db.js";
 import bcrypt from "bcrypt";
 
 export async function findUser(email) {
-  return await db("users").where({ email }).first();
+  return await db("users").where({ email, delete_user: 0 }).first();
 }
 
 export async function validatePassword(inputPassword, hashedPassword) {

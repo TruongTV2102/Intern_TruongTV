@@ -5,8 +5,9 @@ import {
   deleteBook,
   getBooks,
   updateBorrowStatus,
+  importBooks,
 } from "./service.js";
-import { bookSchema } from "./schema.js";
+import { bookSchema, getBooksSchema } from "./schema.js";
 import { authenticate, authorizeAdmin } from "../login/auth.js";
 import db from "../../config/db.js";
 
@@ -24,7 +25,9 @@ export default async function bookRoutes(fastify) {
   );
 
   // Lấy danh sách tất cả sách
-  fastify.get("/books", async (req, reply) => {
+  fastify.get("/books", { schema: getBooksSchema }, async (req, reply) => {
+    console.log(555, req.query);
+
     const booksData = await getBooks(req.query);
     return reply.send(booksData);
   });
@@ -61,13 +64,8 @@ export default async function bookRoutes(fastify) {
 
   // Lấy danh sách genre
   fastify.get("/genres", async (request, reply) => {
-    try {
-      const genres = await db("genres").select("*");
-      return reply.send(genres);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách thể loại:", error);
-      return reply.status(500).send({ error: "Lỗi server" });
-    }
+    const genres = await db("genres").select("*");
+    return reply.send(genres);
   });
 
   //Cập nhật status sách mượn
@@ -75,13 +73,12 @@ export default async function bookRoutes(fastify) {
   fastify.put("/borrow_status/:id", async (req, reply) => {
     const { id } = req.params;
     const { status, fine, return_date } = req.body;
+    const result = await updateBorrowStatus(id, status, fine, return_date);
+    return reply.send(result);
+  });
 
-    try {
-      const result = await updateBorrowStatus(id, status, fine, return_date);
-      return reply.send(result);
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái:", error);
-      reply.code(500).send({ error: "Lỗi khi cập nhật trạng thái" });
-    }
+  fastify.post("/books/import", async (request, reply) => {
+    await importBooks(request.body.books);
+    return reply.send({ success: true });
   });
 }

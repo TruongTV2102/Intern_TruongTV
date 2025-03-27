@@ -14,7 +14,9 @@
       :columns="columns"
       row-key="book_id"
       virtual-scroll
-      :rows-per-page-options="[20]"
+      :rows-per-page-options="[0]"
+      v-model:pagination="pagination"
+      @update:pagination="updateSort"
     >
       <template v-slot:header-cell-status>
         <q-th>
@@ -144,14 +146,20 @@ const getStatusColor = (status) => {
 }
 
 const fetchBorrowHistory = async () => {
+  console.log('Fetching history...') // Kiểm tra xem có gọi nhiều lần không
   try {
     const res = await api.get(`/history/user/${authStore.user.id}`, {
-      params: { ...search.value, page: page.value, limit },
+      params: {
+        ...search.value,
+        page: page.value,
+        limit,
+        sortBy: sortBy.value,
+        descending: descending.value,
+      },
     })
-    borrowHistory.value = res.data.history
+    console.log('API response:', res.data.history) // Kiểm tra API trả về
+    borrowHistory.value = res.data.history // Gán mới dữ liệu, tránh bị cộng dồn
     total.value = res.data.total
-    console.log(res)
-    console.log(total.value)
   } catch (error) {
     console.error('Lỗi khi lấy lịch sử mượn sách:', error)
   }
@@ -166,6 +174,22 @@ const updateSearch = (newSearch) => {
 const updateStatusFilter = (status) => {
   search.value.status = status
   page.value = 1
+  fetchBorrowHistory()
+}
+
+// Sort
+const sortBy = ref('borrow_date') // Cột mặc định để sắp xếp
+const descending = ref(false) // Sắp xếp tăng dần hoặc giảm dần
+
+const pagination = ref({
+  sortBy: 'borrow_date',
+  descending: false,
+})
+
+const updateSort = (val) => {
+  sortBy.value = val.sortBy
+  descending.value = val.descending
+
   fetchBorrowHistory()
 }
 

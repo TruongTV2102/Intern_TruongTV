@@ -3,8 +3,12 @@
     <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Quản lý sách</h1>
 
     <BookSearchBar @search="updateSearch" />
-    <q-btn color="primary" label="Thêm sách" @click="addBook" class="tw-mb-4" />
 
+    <input ref="fileInput" type="file" @change="handleFileUpload" accept=".csv" class="tw-hidden" />
+    <div class="tw-flex tw-justify-between tw-mb-4">
+      <q-btn color="primary" label="Thêm sách" @click="addBook" class="tw-mb-4" />
+      <q-btn color="primary" label="Import CSV" @click="triggerFileInput" class="tw-mb-4" />
+    </div>
     <q-table
       flat
       bordered
@@ -13,6 +17,8 @@
       row-key="id"
       :loading="loading"
       :rows-per-page-options="[0]"
+      v-model:pagination="pagination"
+      @update:pagination="updateSort"
     >
       <template v-slot:body-cell-image="props">
         <q-td :props="props">
@@ -184,6 +190,7 @@ import { toast } from 'src/plugins/toast'
 import { bookSchema } from 'src/schema/books/validationSchema'
 import { validateData } from 'src/schema/validator'
 import { useUploadImage } from 'src/utils/cloudinaryUpload'
+import Papa from 'papaparse'
 
 const { selectedFile, previewUrl, handleFileChange, uploadImage } = useUploadImage()
 
@@ -209,6 +216,7 @@ const form = ref({
 })
 
 const columns = [
+  { name: 'id', label: 'ID', align: 'center', field: 'id', sortable: true },
   { name: 'image', label: 'Ảnh', align: 'center', field: 'cover_image_url', sortable: false },
   { name: 'title', label: 'Tên sách', align: 'left', field: 'title', sortable: true },
   { name: 'author', label: 'Tác giả', align: 'left', field: 'author', sortable: true },
@@ -233,9 +241,16 @@ const columns = [
 
 const fetchBooks = async () => {
   loading.value = true
+  const bookData = {
+    ...search.value,
+    page: page.value,
+    limit: limit,
+    sortBy: sortBy.value,
+    descending: descending.value,
+  }
   try {
     const res = await api.get(API_ROUTES.BOOKS, {
-      params: { ...search.value, page: page.value, limit },
+      params: bookData,
     })
     books.value = res.data.books
     total.value = res.data.total
@@ -274,7 +289,6 @@ const editBook = async (book) => {
     selectedBook.value = book
     const res = await api.get(API_ROUTES.BOOK_DETAIL(book.id))
     form.value = res.data || { ...book } // Lấy dữ liệu từ API nếu có
-    console.log(form.value)
 
     selectedFile.value = null
     previewUrl.value = form.value.cover_image_url || ''
@@ -351,7 +365,6 @@ const viewBorrowHistory = async (bookId) => {
   try {
     const res = await api.get(API_ROUTES.HISTORY_BOOK(bookId))
     borrowHistory.value = res.data
-    console.log(res.data)
   } catch (error) {
     console.error('Lỗi khi lấy lịch sử mượn:', error)
   } finally {
@@ -387,6 +400,67 @@ const showConfirmDialog = (message, action) => {
 const executeAction = () => {
   if (confirmAction.value) confirmAction.value()
   confirmDialog.value = false
+}
+
+// Sort
+
+const sortBy = ref('id') // Cột mặc định để sắp xếp
+const descending = ref(false) // Sắp xếp tăng dần hoặc giảm dần
+
+const pagination = ref({
+  sortBy: 'id',
+  descending: false,
+})
+
+const updateSort = (val) => {
+  sortBy.value = val.sortBy
+  descending.value = val.descending
+
+  fetchBooks()
+}
+
+// Import CSV
+
+const csvFile = ref(null)
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    csvFile.value = file
+    importBooks(file)
+  }
+}
+
+const importBooks = async (file) => {
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    const csvData = Papa.parse(e.target.result, { header: true, skipEmptyLines: true })
+    console.log(csvData)
+
+    if (csvData.errors.length) {
+      toast.error('Lỗi khi đọc file CSV!')
+      return
+    }
+
+    try {
+      const books = csvData.data.filter((book) => book.title) // Bỏ dòng trống hoặc thiếu tiêu đề
+
+      await api.post(API_ROUTES.IMPORT_CSV, { books })
+      toast.info('Nhập sách thành công!')
+      fetchBooks()
+    } catch (error) {
+      toast.error(error || 'Lỗi khi nhập sách!')
+    }
+  }
+  reader.readAsText(file)
+}
+
+const fileInput = ref(null)
+
+const triggerFileInput = () => {
+  fileInput.value.click() // Kích hoạt input file khi nhấn nút
 }
 
 onMounted(fetchBooks)
