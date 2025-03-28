@@ -137,7 +137,7 @@ const columns = [
     name: 'fine',
     label: 'Tiền phạt (VNĐ)',
     align: 'center',
-    field: (row) => formatCurrency(calculateFine(row)),
+    field: (row) => formatCurrency(calculateFine(row)) || 'fine',
     sortable: true,
   },
   { name: 'status', label: 'Trạng thái', align: 'center', field: 'status', sortable: true },
@@ -206,6 +206,7 @@ const formatCurrency = (amount) => amount.toLocaleString('vi-VN') + ' đ'
 
 const handleReturnBook = async (book) => {
   const fineAmount = calculateFine(book)
+  console.log('sách', book)
   try {
     await api.put(`/approve-borrow/${book.id}`, { status: 'Returned', fine: fineAmount })
     fetchBorrowHistory()

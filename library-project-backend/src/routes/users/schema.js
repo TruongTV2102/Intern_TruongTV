@@ -55,3 +55,17 @@ export const resetPasswordSchema = {
     },
   },
 };
+
+export const getUsersSchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      email: { type: "string" },
+      page: { type: "string", default: 1 },
+      limit: { type: "string", default: 8 },
+      sortBy: { type: "string" },
+      descending: { type: "boolean", default: false },
+    },
+    additionalProperties: false, // Chặn các query params không được định nghĩa
+  },
+};

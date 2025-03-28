@@ -37,21 +37,6 @@ export const bookHistorySchema = {
     },
     required: ["book_id"],
   },
-  response: {
-    200: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          user_id: { type: "integer" },
-          name: { type: "string" },
-          status: { type: "string" },
-          borrow_date: { type: "string", format: "date-time" },
-          return_date: { type: ["string", "null"], format: "date-time" },
-        },
-      },
-    },
-  },
 };
 
 export const historyQuerySchema = {

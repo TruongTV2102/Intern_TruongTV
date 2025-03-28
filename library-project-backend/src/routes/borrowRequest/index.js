@@ -25,7 +25,7 @@ export default async function borrowRoutes(fastify) {
         const [borrow_id] = await trx("borrow_requests").insert({
           user_id,
           status: "Pending",
-          borrow_date: new Date(), // Lưu ngày mượn hiện tại
+          created_at: new Date(), // Lưu ngày mượn hiện tại
         });
 
         await Promise.all(
@@ -80,23 +80,24 @@ export default async function borrowRoutes(fastify) {
             .where("id", borrowItem.book_id)
             .decrement("quantity", 1);
 
-          // Lấy borrow_date từ borrow_requests
+          // Lấy user_id từ borrow_requests
           const borrowRequest = await trx("borrow_requests")
             .where("id", borrow_id)
-            .select("borrow_date", "user_id")
+            .select("user_id")
             .first();
 
           if (!borrowRequest) {
             throw new Error("Không tìm thấy yêu cầu mượn.");
           }
 
-          const borrowDate = new Date(borrowRequest.borrow_date);
+          const borrowDate = new Date();
           const dueDate = new Date(borrowDate);
           dueDate.setMonth(dueDate.getMonth() + 1); // Cộng thêm 1 tháng
 
           // Cập nhật status + due_date cho borrow_items
           await trx("borrow_items").where("id", borrow_item_id).update({
             status,
+            borrow_date: borrowDate,
             due_date: dueDate,
           });
         } else if (status === BorrowStatus.RETURNED) {
@@ -172,11 +173,11 @@ export default async function borrowRoutes(fastify) {
           "borrow_requests.id",
           "users.email as email",
           "users.name as name",
-          "borrow_requests.borrow_date",
+          "borrow_requests.created_at",
           "borrow_requests.status"
         )
         .join("users", "user_id", "users.id")
-        .orderBy("borrow_date", "desc");
+        .orderBy("created_at", "desc");
 
       return reply.send(borrowRequests);
     }
@@ -221,9 +222,11 @@ export default async function borrowRoutes(fastify) {
           "books.cover_image_url",
           "books.title",
           "books.author",
+          "books.quantity",
+          "books.total_quantity",
           "genres.name as genre",
           "books.published_year",
-          "borrow_requests.borrow_date",
+          "borrow_items.borrow_date",
           "borrow_items.due_date",
           "borrow_items.return_date",
           "borrow_items.status"
@@ -268,63 +271,85 @@ export default async function borrowRoutes(fastify) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
+  // Đồng ý hoặc từ chối tất cả
   fastify.put("/approve-all/:orderId", async (request, reply) => {
     const { orderId } = request.params;
     const { status } = request.body;
 
     if (!["Approved", "Rejected"].includes(status)) {
-      throw new Error("Trạng thái không hợp lệ"); // Fastify tự handle
+      throw new Error("Trạng thái không hợp lệ");
     }
 
-    // Kiểm tra xem đơn hàng có tồn tại không
-    const borrowRequest = await db("borrow_requests")
-      .where({ id: orderId })
-      .first();
-    if (!borrowRequest) {
-      throw new Error("Không tìm thấy đơn hàng");
-    }
-
-    // Lấy danh sách sách trong đơn hàng
-    const borrowedBooks = await db("borrow_items")
-      .where({ borrow_id: orderId })
-      .select("book_id");
-
-    // Nếu đơn hàng được duyệt thì trừ số lượng sách
-    if (status === "Approved") {
-      for (const item of borrowedBooks) {
-        await db("books").where({ id: item.book_id }).decrement("quantity", 1);
+    // Transaction
+    await db.transaction(async (trx) => {
+      // Kiểm tra xem đơn hàng có tồn tại không
+      const borrowRequest = await trx("borrow_requests")
+        .where({ id: orderId })
+        .first();
+      if (!borrowRequest) {
+        throw new Error("Không tìm thấy đơn hàng");
       }
-    }
 
-    // Cập nhật trạng thái của tất cả sách trong đơn hàng
-    await db("borrow_items").where({ borrow_id: orderId }).update({ status });
+      // Lấy danh sách sách trong đơn hàng
+      const borrowedBooks = await trx("borrow_items")
+        .where({ borrow_id: orderId })
+        .select("id", "book_id");
 
-    // Cập nhật trạng thái tổng thể của đơn hàng
-    await db("borrow_requests")
-      .where({ id: orderId })
-      .update({ status: "Processed" });
+      if (status === "Approved") {
+        for (const item of borrowedBooks) {
+          // Kiểm tra số lượng sách trước khi trừ
+          const book = await trx("books").where("id", item.book_id).first();
+          if (!book || book.quantity < 1) {
+            throw new Error(`Sách ${book.title} đã hết hàng.`);
+          }
 
-    // Lấy thông tin người dùng để gửi email
-    const user = await db("users")
-      .where({ id: borrowRequest.user_id })
-      .select("email", "name")
-      .first();
-    if (!user) throw new Error("Không tìm thấy người dùng");
+          // Giảm số lượng sách đi 1
+          await trx("books").where("id", item.book_id).decrement("quantity", 1);
 
-    const htmlContent = await ejs.renderFile(
-      path.join(__dirname, "../../templates/borrowStatus.ejs"),
-      { name: user.name }
-    );
+          // Ghi lịch sử mượn
+          const borrowDate = new Date();
+          const dueDate = new Date(borrowDate);
+          dueDate.setMonth(dueDate.getMonth() + 1);
 
-    await fastify.mailer.sendMail({
-      from: "truong9x00z@gmail.com",
-      to: user.email,
-      subject: "Cập nhật trạng thái yêu cầu mượn sách",
-      text: `Xin chào ${user.name},\n\nYêu cầu mượn sách của bạn đã được xử lý xong. Vui lòng kiểm tra danh sách sách đã được duyệt.\n\nCảm ơn!`,
-      html: htmlContent,
+          await trx("borrow_items").where("id", item.id).update({
+            borrow_date: borrowDate,
+            due_date: dueDate,
+          });
+        }
+      }
+
+      // Cập nhật trạng thái của tất cả sách trong đơn hàng
+      await trx("borrow_items")
+        .where({ borrow_id: orderId })
+        .update({ status });
+
+      // Cập nhật trạng thái tổng thể của đơn hàng
+      await trx("borrow_requests")
+        .where({ id: orderId })
+        .update({ status: "Processed" });
+
+      // Lấy thông tin người dùng để gửi email
+      const user = await trx("users")
+        .where({ id: borrowRequest.user_id })
+        .select("email", "name")
+        .first();
+      if (!user) throw new Error("Không tìm thấy người dùng");
+
+      const htmlContent = await ejs.renderFile(
+        path.join(__dirname, "../../templates/borrowStatus.ejs"),
+        { name: user.name }
+      );
+
+      await fastify.mailer.sendMail({
+        from: "truong9x00z@gmail.com",
+        to: user.email,
+        subject: "Cập nhật trạng thái yêu cầu mượn sách",
+        text: `Xin chào ${user.name},\n\nYêu cầu mượn sách của bạn đã được xử lý xong. Vui lòng kiểm tra danh sách sách đã được duyệt.\n\nCảm ơn!`,
+        html: htmlContent,
+      });
+
+      console.log("Đã gửi mail");
     });
-
-    console.log("Đã gửi mail");
 
     return reply.send({
       message: `Đơn hàng ${orderId} đã được cập nhật thành ${status}`,

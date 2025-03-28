@@ -77,7 +77,6 @@ export async function getBooks({
     .orderBy(sortBy, order)
     .limit(limit)
     .offset(offset);
-  console.log(booksQuery.toQuery());
 
   const countQuery = db("books")
     .leftJoin("genres", "books.genre_id", "genres.id")

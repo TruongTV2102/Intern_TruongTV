@@ -119,7 +119,6 @@ const confirmDialog = ref(false)
 const confirmBorrow = async () => {
   try {
     await cartStore.borrowBooks()
-    toast.info('Xác nhận mượn thành công!')
     confirmDialog.value = false
   } catch (error) {
     toast.error(error || 'Có lỗi xảy ra, vui lòng thử lại.')

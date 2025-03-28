@@ -53,9 +53,11 @@ export default async function historyRoutes(fastify) {
           "books.title",
           "books.published_year",
           "borrow_items.status",
-          "borrow_requests.borrow_date",
+          "borrow_requests.created_at",
+          "borrow_items.borrow_date",
           "borrow_items.return_date",
-          "borrow_items.due_date"
+          "borrow_items.due_date",
+          "borrow_items.id"
         )
         .modify((query) => {
           if (title) query.whereILike("books.title", `%${title}%`);
@@ -107,10 +109,11 @@ export default async function historyRoutes(fastify) {
         .select(
           "users.name",
           "borrow_items.status",
-          "borrow_requests.borrow_date",
+          "borrow_items.borrow_date",
+          "borrow_items.due_date",
           "borrow_items.return_date"
         )
-        .orderBy("borrow_requests.borrow_date", "desc");
+        .orderBy("borrow_items.borrow_date", "desc");
 
       return reply.send(history);
     }
@@ -157,10 +160,11 @@ export default async function historyRoutes(fastify) {
           "books.author",
           "genres.name as genre",
           "books.published_year",
-          "borrow_requests.borrow_date",
+          "borrow_items.borrow_date",
           "borrow_items.due_date",
           "borrow_items.return_date",
-          "borrow_items.status"
+          "borrow_items.status",
+          "borrow_items.fine"
         )
         .modify((query) => {
           if (user_name) query.whereILike("users.name", `%${user_name}%`);

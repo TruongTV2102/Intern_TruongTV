@@ -14,6 +14,7 @@ const props = defineProps({
   page: Number,
   limit: Number,
 })
+console.log('Phân trang', props)
 
 const emit = defineEmits(['update:page'])
 

@@ -30,10 +30,38 @@ export async function createUser(userData) {
   return newUserId;
 }
 
-export async function getUsers() {
-  return await db("users")
+export async function getUsers({
+  email,
+  page = 1,
+  limit = 8,
+  sortBy = "id",
+  descending = false,
+}) {
+  const offset = (page - 1) * limit;
+  const order = descending ? "desc" : "asc";
+  console.log("ORDER", order);
+
+  const usersQuery = db("users")
     .select("id", "email", "name", "birthday", "phone", "is_active", "avatar")
-    .where("role", "user");
+    .where("role", "user")
+    .modify((query) => {
+      if (email) query.whereILike("email", `%${email}%`);
+    })
+    .orderBy(sortBy, order)
+    .limit(limit)
+    .offset(offset);
+
+  const countQuery = db("users")
+    .where("role", "user")
+    .modify((query) => {
+      if (email) query.whereILike("email", `%${email}%`);
+    })
+    .count("id as total")
+    .first();
+
+  const [users, totalData] = await Promise.all([usersQuery, countQuery]);
+
+  return { users, total: totalData.total };
 }
 
 export async function getUserById(id) {

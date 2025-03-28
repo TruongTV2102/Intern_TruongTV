@@ -136,9 +136,9 @@ const columns_request = [
   { name: 'user', label: 'Người mượn', field: 'name', align: 'left' },
   { name: 'email', label: 'Email', field: 'email', align: 'left' },
   {
-    name: 'borrow_date',
-    label: 'Ngày mượn',
-    field: (row) => formatDate(row.borrow_date),
+    name: 'created_at',
+    label: 'Ngày yêu cầu',
+    field: (row) => formatDate(row.created_at),
     align: 'left',
   },
   { name: 'status', label: 'Trạng thái', field: 'status', align: 'center' },
@@ -148,7 +148,14 @@ const columns_request = [
 const columns_items = [
   { name: 'image', label: 'Ảnh', align: 'center', field: 'cover_image_url', sortable: false },
   { name: 'title', label: 'Tên sách', align: 'left', field: 'title', sortable: true },
-  { name: 'user', label: 'Người mượn', align: 'left', field: 'user_name', sortable: true },
+  { name: 'quantity', label: 'Số lượng', align: 'left', field: 'quantity', sortable: false },
+  {
+    name: 'total_quantity',
+    label: 'Tổng số lượng',
+    align: 'left',
+    field: 'total_quantity',
+    sortable: false,
+  },
   {
     name: 'borrow_date',
     label: 'Ngày mượn',
@@ -195,6 +202,7 @@ const updateStatus = async (book, status) => {
     await api.put(`/approve-borrow/${book.id}`, { status })
     if (selectedOrderId.value) {
       viewDetails(selectedOrderId.value) // Gọi API với orderId đang mở
+      fetchOrders()
     }
   } catch (error) {
     toast.error(error.response?.data?.message)

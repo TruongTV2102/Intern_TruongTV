@@ -3,6 +3,7 @@ import {
   registerSchema,
   changePasswordSchema,
   resetPasswordSchema,
+  getUsersSchema,
 } from "./schema.js";
 import {
   createUser,
@@ -49,9 +50,14 @@ export default async function userRoutes(fastify) {
     "/users",
     {
       preValidation: [authenticate, authorizeAdmin],
+      schema: getUsersSchema,
     },
     async (req, reply) => {
-      return getUsers();
+      console.log("Query params:", req.query);
+      const { email, page, limit, sortBy, descending } = req.query || {}; // Tránh lỗi undefined
+      const result = await getUsers({ email, page, limit, sortBy, descending });
+
+      return reply.send(result);
     }
   );
 

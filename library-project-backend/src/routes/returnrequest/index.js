@@ -1,84 +1,48 @@
 import db from "../../config/db.js";
 import { authenticate, authorizeAdmin } from "../login/auth.js";
+import { returnLostSchema } from "./schema.js";
+import { BorrowStatus } from "../../constants/enum.js";
 
 export default async function returnRoutes(fastify) {
-  // Trả sách
   fastify.put(
-    "/return-book/:borrow_item_id",
+    "/return_or_lost/:borrow_item_id",
     {
+      schema: returnLostSchema, // Định nghĩa schema nếu cần
       preValidation: [authenticate, authorizeAdmin],
     },
     async (req, reply) => {
       const { borrow_item_id } = req.params;
+      const { status, fine } = req.body;
+
+      if (![BorrowStatus.RETURNED, BorrowStatus.LOST].includes(status)) {
+        return reply.status(400).send({ message: "Trạng thái không hợp lệ." });
+      }
 
       await db.transaction(async (trx) => {
-        // Lấy thông tin mượn sách
         const borrowItem = await trx("borrow_items")
           .where("id", borrow_item_id)
           .first();
 
-        if (!borrowItem || borrowItem.status !== "Approved") {
-          throw new Error("Sách không hợp lệ hoặc đã được trả.");
+        if (!borrowItem) {
+          throw new Error("Không tìm thấy sách trong yêu cầu mượn.");
         }
 
-        // Tính phí trễ hạn
-        const now = new Date();
-        const dueDate = new Date(borrowItem.due_date);
-        console.log(dueDate);
-
-        const daysLate = Math.max(
-          0,
-          Math.ceil((now - dueDate) / (1000 * 60 * 60))
-        );
-        const lateFee = daysLate * 500;
-
-        // Cập nhật trạng thái sách
-        await trx("borrow_items").where("id", borrow_item_id).update({
-          status: "Returned",
-          return_date: now,
-        });
-
-        // Tăng số lượng sách trong kho
-        await trx("books")
-          .where("id", borrowItem.book_id)
-          .increment("quantity", 1);
-
-        return reply.send({
-          message: "Sách đã được trả.",
-          late_fee: lateFee,
-          time: daysLate,
-        });
-      });
-    }
-  );
-
-  // Mất sách
-  fastify.put(
-    "/mark-lost/:borrow_item_id",
-    {
-      preValidation: [authenticate, authorizeAdmin],
-    },
-    async (req, reply) => {
-      const { borrow_item_id } = req.params;
-
-      await db.transaction(async (trx) => {
-        // Lấy thông tin sách
-        const borrowItem = await trx("borrow_items")
-          .where("id", borrow_item_id)
-          .first();
-
-        if (!borrowItem || borrowItem.status !== "Approved") {
-          throw new Error("Sách không hợp lệ hoặc đã được trả.");
+        if (borrowItem.status !== BorrowStatus.APPROVED) {
+          throw new Error("Chỉ có thể cập nhật sách đang được mượn.");
         }
 
-        // Cập nhật trạng thái thành "Lost"
+        const return_date = new Date();
         await trx("borrow_items")
           .where("id", borrow_item_id)
-          .update({ status: "Lost" });
+          .update({
+            status,
+            fine: fine || 0,
+            return_date,
+          });
+      });
 
-        return reply.send({
-          message: "Đã cập nhật trạng thái sách thành 'Lost'.",
-        });
+      return reply.send({
+        message: `Đã cập nhật trạng thái sách: ${status}.`,
       });
     }
   );
