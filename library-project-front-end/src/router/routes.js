@@ -12,7 +12,6 @@ const routes = [
         component: () => import('src/pages/ProfilePage.vue'),
         meta: { requiresAuth: true },
       },
-      { path: 'search', component: () => import('src/pages/SearchResults.vue') },
       {
         path: 'changepassword',
         component: () => import('src/pages/ChangePassword.vue'),
@@ -29,8 +28,8 @@ const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path: 'loanrequestmanagement',
-        component: () => import('src/pages/LoanRequestManagement.vue'),
+        path: 'adminhistorybooks',
+        component: () => import('src/pages/AdminHistoryBooks.vue'),
         meta: { requiresAuth: true },
       },
       {
@@ -39,19 +38,25 @@ const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path: 'returnmanagement',
-        component: () => import('src/pages/ReturnRequestManagement.vue'),
+        path: 'bookdetails',
+        component: () => import('src/pages/BookDetails.vue'),
         meta: { requiresAuth: true },
       },
-      {
-        path: 'lungtung',
-        component: () => import('src/pages/LungTung.vue'),
-        meta: { requiresAuth: true, requiresAdmin: true },
-      },
+
       {
         path: 'cart',
         component: () => import('src/pages/CartView.vue'),
         meta: { requiresAuth: true },
+      },
+
+      {
+        path: 'pageone',
+        component: () => import('src/pages/PageOne.vue'),
+      },
+
+      {
+        path: 'pagetwo',
+        component: () => import('src/pages/PageTwo.vue'),
       },
     ],
   },

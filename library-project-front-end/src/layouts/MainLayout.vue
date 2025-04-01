@@ -95,7 +95,7 @@
             v-ripple
             @click="goToPage('/manageusers')"
           >
-            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section avatar><q-icon name="people" /></q-item-section>
             <q-item-section>Quản lý người dùng</q-item-section>
           </q-item>
 
@@ -105,28 +105,26 @@
             v-ripple
             @click="goToPage('/managebooks')"
           >
-            <q-item-section avatar><q-icon name="history" /></q-item-section>
+            <q-item-section avatar><q-icon name="book" /></q-item-section>
             <q-item-section>Quản lý sách</q-item-section>
           </q-item>
-
           <q-item
             v-if="authStore.user.role === 'admin'"
             clickable
             v-ripple
-            @click="goToPage('/loanrequestmanagement')"
+            @click="goToPage('/bookdetails')"
           >
-            <q-item-section avatar><q-icon name="history" /></q-item-section>
-            <q-item-section>Yêu cầu mượn sách</q-item-section>
+            <q-item-section avatar><q-icon name="list" /></q-item-section>
+            <q-item-section>Danh sách đơn</q-item-section>
           </q-item>
-
           <q-item
             v-if="authStore.user.role === 'admin'"
             clickable
             v-ripple
-            @click="goToPage('/returnmanagement')"
+            @click="goToPage('/adminhistorybooks')"
           >
             <q-item-section avatar><q-icon name="history" /></q-item-section>
-            <q-item-section>Yêu cầu trả sách</q-item-section>
+            <q-item-section>Lịch sử mượn sách</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>
@@ -167,7 +165,4 @@ onMounted(() => {
     authStore.fetchUser()
   }
 })
-
-console.log('Thông', useAuthStore().user)
-// console.log(authStore.user.role)
 </script>

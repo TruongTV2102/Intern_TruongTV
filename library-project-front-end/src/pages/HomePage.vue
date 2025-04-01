@@ -1,6 +1,6 @@
 <template>
   <div class="tw-p-4">
-    <BookSearchBar v-model:searchQuery="searchQuery" @search="resetPage" />
+    <BookSearchBar ref="searchBar" v-model:searchQuery="searchQuery" @search="resetPage" />
 
     <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
       <div
@@ -48,6 +48,7 @@ import BookDetail from 'components/BookDetail.vue'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
 
+const searchBar = ref(null)
 const books = ref([])
 const searchQuery = ref({})
 const isModalOpen = ref(false)
@@ -84,5 +85,8 @@ const openModal = (book) => {
   isModalOpen.value = true
 }
 
-onMounted(fetchBooks)
+onMounted(() => {
+  fetchBooks()
+  searchBar.value.setShowBooksFilter(true)
+})
 </script>

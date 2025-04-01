@@ -154,6 +154,7 @@ export default async function historyRoutes(fastify) {
           "borrow_items.id",
           "users.id as user_id",
           "users.name as user_name",
+          "users.email as email",
           "books.id as book_id",
           "books.cover_image_url",
           "books.title",

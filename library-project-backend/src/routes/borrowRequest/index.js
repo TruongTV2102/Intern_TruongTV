@@ -168,18 +168,50 @@ export default async function borrowRoutes(fastify) {
       preValidation: [authenticate, authorizeAdmin],
     },
     async (req, reply) => {
+      const {
+        email,
+        status,
+        page = 1,
+        limit = 10,
+        sortBy = "created_at", // Mặc định sắp xếp theo ngày mượn
+        descending = false, // Mặc định giảm dần
+      } = req.query;
+
+      const offset = (page - 1) * limit;
+      const order = descending ? "desc" : "asc";
+
       const borrowRequests = await db("borrow_requests")
         .select(
           "borrow_requests.id",
           "users.email as email",
           "users.name as name",
           "borrow_requests.created_at",
-          "borrow_requests.status"
+          "borrow_requests.status as status"
         )
         .join("users", "user_id", "users.id")
-        .orderBy("created_at", "desc");
+        .modify((query) => {
+          if (email) query.whereILike("email", `%${email}%`);
+          if (status) query.where("borrow_requests.status", status);
+        })
+        .orderBy(sortBy, order)
+        .limit(limit)
+        .offset(offset);
 
-      return reply.send(borrowRequests);
+      const countQuery = db("borrow_requests")
+        .join("users", "user_id", "users.id")
+        .modify((query) => {
+          if (email) query.whereILike("email", `%${email}%`);
+          if (status) query.where("borrow_requests.status", status);
+        })
+        .count("borrow_requests.id as total")
+        .first();
+
+      const [details, totalData] = await Promise.all([
+        borrowRequests,
+        countQuery,
+      ]);
+
+      return { details, total: totalData.total };
     }
   );
 

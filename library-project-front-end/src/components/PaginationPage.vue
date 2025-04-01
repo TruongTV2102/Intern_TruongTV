@@ -1,8 +1,20 @@
 <template>
   <div v-if="totalPages > 1" class="tw-mt-4 tw-flex tw-justify-center tw-gap-4">
-    <q-btn label="« Trước" color="blue" :disabled="page === 1" @click="prevPage" />
+    <q-btn
+      class="tw-w-[100px]"
+      label="« Trước"
+      color="blue"
+      :disabled="page === 1"
+      @click="prevPage"
+    />
     <span>Trang {{ page }} / {{ totalPages }}</span>
-    <q-btn label="Tiếp »" color="blue" :disabled="page === totalPages" @click="nextPage" />
+    <q-btn
+      class="tw-w-[100px]"
+      label="Tiếp »"
+      color="blue"
+      :disabled="page === totalPages"
+      @click="nextPage"
+    />
   </div>
 </template>
 

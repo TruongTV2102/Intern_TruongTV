@@ -2,15 +2,18 @@
   <div class="tw-p-4">
     <h1 class="tw-text-xl tw-font-semibold tw-mb-4">Quản lý Người Dùng</h1>
 
-    <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
+    <div class="tw-flex tw-items-center tw-gap-2 tw-mb-4">
       <q-input
         v-model="searchQuery"
         label="Tìm kiếm email..."
         outlined
         dense
-        class="tw-w-1/3"
-        @update:model-value="fetchUsers"
-      />
+        class="tw-w-1/3 tw-transition-all tw-duration-200 focus:tw-w-1/2"
+      >
+        <template v-slot:append>
+          <q-btn flat round dense icon="search" color="primary" @click="fetchUsers" />
+        </template>
+      </q-input>
     </div>
 
     <q-table
@@ -32,10 +35,32 @@
           />
         </q-td>
       </template>
+
+      <template v-slot:header-cell-status>
+        <q-th>
+          Trạng thái
+          <q-btn flat dense icon="filter_list">
+            <q-menu>
+              <q-list>
+                <q-item
+                  clickable
+                  v-for="option in statusOptions"
+                  :key="option.value"
+                  @click="updateStatusFilter(option.value)"
+                >
+                  <q-item-section>{{ option.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+        </q-th>
+      </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props" class="tw-space-x-2">
           <q-btn
-            class="tw-w-[90px]"
+            v-if="props.row.status === 'Active' || props.row.status === 'Deleted'"
+            class="tw-w-[100px]"
             @click="showHistoryDialog(props.row)"
             color="blue"
             dense
@@ -44,16 +69,18 @@
             Xem lịch sử
           </q-btn>
           <q-btn
-            class="tw-w-[90px]"
-            @click="openToggleDialog(props.row)"
-            :color="props.row.is_active ? 'negative' : 'positive'"
+            v-if="props.row.status !== 'Deleted'"
+            class="tw-w-[100px]"
+            @click="openConfirmDialog(props.row)"
+            :color="props.row.status === 'Active' ? 'negative' : 'positive'"
             dense
             unelevated
           >
-            {{ props.row.is_active ? 'Vô hiệu hóa' : 'Kích hoạt' }}
+            {{ props.row.status === 'Active' ? 'Vô hiệu hóa' : 'Kích hoạt' }}
           </q-btn>
           <q-btn
-            class="tw-w-[90px]"
+            v-if="props.row.status === 'Active' && props.row.status !== 'Deleted'"
+            class="tw-w-[100px]"
             @click="openDeleteDialog(props.row)"
             color="red"
             dense
@@ -68,16 +95,39 @@
     <!-- Phân trang -->
     <PaginationPage v-model:page="page" :total="total" :limit="limit" @update:page="fetchUsers" />
 
+    <!-- Dialog xác nhận kích hoạt/ vô hiệu hóa -->
+    <q-dialog v-model="confirmDialog" persistent>
+      <q-card class="tw-w-[400px]">
+        <q-card-section class="row items-center">
+          <q-icon name="warning" color="orange" size="md" />
+          <span class="q-ml-md">
+            Bạn có chắc chắn muốn
+            {{ selectedUser?.status === 'Active' ? 'Vô hiệu hóa' : 'Kích hoạt' }} tài khoản
+            {{ selectedUser?.email }}
+            không?
+          </span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn label="Hủy" color="grey" flat v-close-popup />
+          <q-btn
+            :label="selectedUser?.status === 'Active' ? 'Vô hiệu hóa' : 'Kích hoạt'"
+            :color="selectedUser?.status === 'Active' ? 'negative' : 'positive'"
+            @click="confirmStatusUpdate"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Dialog Lịch Sử Mượn -->
     <q-dialog v-model="historyDialogVisible">
-      <q-card class="tw-min-w-[1500px], tw-min-h-[500px]">
+      <q-card class="tw-w-[1500px]">
         <q-card-section>
           <div class="tw-text-lg tw-font-semibold">
             Lịch sử mượn sách của {{ selectedUser?.email }}
           </div>
         </q-card-section>
         <q-card-section>
-          <BookSearchBar @search="updateSearch" />
+          <BookSearchBar ref="searchHistoryBar" @search="updateHistorySearch" />
         </q-card-section>
 
         <q-card-section>
@@ -100,9 +150,9 @@
                     <q-list>
                       <q-item
                         clickable
-                        v-for="option in statusOptions"
+                        v-for="option in statusHistoryOptions"
                         :key="option.value"
-                        @click="updateStatusFilter(option.value)"
+                        @click="updateStatusHistoryFilter(option.value)"
                       >
                         <q-item-section>{{ option.label }}</q-item-section>
                       </q-item>
@@ -167,6 +217,7 @@ import BookSearchBar from 'src/components/BookSearchBar.vue'
 import { formatDate } from 'src/utils/dateUtils'
 import PaginationPage from 'src/components/PaginationPage.vue'
 
+const searchHistoryBar = ref(null)
 const users = ref([])
 const searchQuery = ref('')
 const historyDialogVisible = ref(false)
@@ -176,6 +227,7 @@ const total = ref(0)
 const page = ref(1)
 const limit = 2
 const totalHistory = ref(0)
+const totalBorrowBook = ref(0)
 const pageHistory = ref(1)
 const sortBy = ref('id')
 const search = ref({})
@@ -199,11 +251,26 @@ const columns = [
   },
   { name: 'phone', label: 'Số điện thoại', field: 'phone', align: 'left', sortable: false },
   {
+    name: 'borrowbook',
+    label: 'Số sách đang mượn',
+    field: 'phone',
+    align: 'left',
+    sortable: false,
+  },
+
+  {
     name: 'borrow_date',
     label: 'Ngày yêu cầu',
-    field: (row) => formatDate(row.birthday),
+    field: (row) => formatDate(row.created_at),
     align: 'center',
     sortable: false,
+  },
+  {
+    name: 'status',
+    label: 'Trạng thái',
+    align: 'center',
+    field: 'status',
+    sortable: true,
   },
   { name: 'actions', label: 'Thao tác', align: 'center' },
 ]
@@ -254,7 +321,7 @@ const historyColumns = [
   { name: 'actions', label: 'Thao tác', align: 'center' },
 ]
 
-const statusOptions = [
+const statusHistoryOptions = [
   { label: 'Đang chờ', value: 'Pending' },
   { label: 'Đã duyệt', value: 'Approved' },
   { label: 'Đã trả', value: 'Returned' },
@@ -262,36 +329,50 @@ const statusOptions = [
   { label: 'Bị từ chối', value: 'Rejected' },
 ]
 
+const statusUser = ref('')
+
 const fetchUsers = async () => {
   try {
     const res = await api.get(API_ROUTES.USERS, {
       params: {
-        ...searchQuery.value,
+        email: searchQuery.value,
+        status: statusUser.value,
         page: page.value,
         limit,
         sortBy: sortBy.value,
         descending: descending.value,
       },
     })
+    console.log('Tìm kiếm', statusUser.value)
+
     users.value = res.data.users
     total.value = res.data.total
-    console.log('USERS', users)
+    totalBorrowBook.value = res.data.totalBorrowBook
+
+    console.log('USERS', res.data)
   } catch (error) {
     console.error(error)
     toast.error('Lỗi khi tải danh sách người dùng')
   }
 }
 
+const statusOptions = [
+  { label: 'Tất cả', value: '' },
+  { label: 'Đã xóa', value: 'Deleted' },
+  { label: 'Đã kích hoạt', value: 'Active' },
+  { label: 'Chưa kích hoạt', value: 'Inactive' },
+]
+
 const showHistoryDialog = (user) => {
   historyDialogVisible.value = true
-  console.log('USER:', user)
+  pageHistory.value = 1
+  selectedUser.value = user
 
   // Gọi fetchBorrowHistory sau khi đã gán selectedUser
-  fetchBorrowHistory(user.id)
+  fetchBorrowHistory(selectedUser.value.id)
 }
 
 const fetchBorrowHistory = async (userId) => {
-  selectedUser.value = userId
   console.log('userID', userId)
 
   try {
@@ -316,17 +397,16 @@ const fetchBorrowHistory = async (userId) => {
   }
 }
 
-const updateSearch = (newSearch) => {
+const updateHistorySearch = (newSearch) => {
   search.value = newSearch
   page.value = 1
-  fetchBorrowHistory(selectedUser.value)
+  fetchBorrowHistory(selectedUser.value.id)
 }
 
 const updateStatus = async (book) => {
-  console.log(111, 'alo')
   try {
     await api.put(`/return_or_lost/${book.id}`, { Status: 'Lost' })
-    fetchBorrowHistory(selectedUser.value) // Refresh lại lịch sử
+    fetchBorrowHistory(selectedUser.value.id) // Refresh lại lịch sử
   } catch (error) {
     toast.error(error.response?.data?.message)
     console.error('Lỗi khi cập nhật trạng thái:', error)
@@ -353,17 +433,23 @@ const handleReturnBook = async (book) => {
 
   try {
     await api.put(`/return_or_lost/${book.id}`, { status: 'Returned', fine: fineAmount })
-    fetchBorrowHistory(selectedUser.value)
+    fetchBorrowHistory(selectedUser.value.id)
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái:', error)
     toast.error(error.response?.data?.message)
   }
 }
 
-const updateStatusFilter = (status) => {
+const updateStatusHistoryFilter = (status) => {
   search.value.status = status
   page.value = 1
-  fetchBorrowHistory(selectedUser.value)
+  fetchBorrowHistory(selectedUser.value.id)
+}
+
+const updateStatusFilter = (status) => {
+  statusUser.value = status
+  page.value = 1
+  fetchUsers()
 }
 
 const paginationHistory = ref({
@@ -377,15 +463,13 @@ const pagination = ref({
 })
 
 const updateSortHistory = (val) => {
-  console.log(222, 'alo')
   sortByHistory.value = val.sortBy
   descendingHistory.value = val.descending
 
-  fetchBorrowHistory(selectedUser.value)
+  fetchBorrowHistory(selectedUser.value.id)
 }
 
 const updateSort = (val) => {
-  console.log(333, val)
   sortBy.value = val.sortBy
   descending.value = val.descending
 
@@ -393,7 +477,47 @@ const updateSort = (val) => {
 }
 
 const handlePageChange = () => {
-  fetchBorrowHistory(selectedUser.value)
+  fetchBorrowHistory(selectedUser.value.id)
+}
+
+const openDeleteDialog = async (userId) => {
+  try {
+    const res = await api.get(API_ROUTES.DELETE_USER(userId), {})
+
+    borrowHistory.value = res.data.history.map((item) => ({
+      ...item,
+      fine: calculateFine(item),
+    }))
+    totalHistory.value = res.data.total
+  } catch (error) {
+    console.error(error)
+    toast.error('Lỗi khi tải lịch sử mượn sách')
+  }
+}
+
+const confirmDialog = ref(false)
+
+const openConfirmDialog = (user) => {
+  selectedUser.value = user
+  confirmDialog.value = true
+  console.log('selectedUser', selectedUser)
+}
+
+const confirmStatusUpdate = async () => {
+  if (!selectedUser.value.id) return
+
+  try {
+    const newStatus = selectedUser.value.status === 'Active' ? 'Inactive' : 'Active'
+    await api.put(`/users/${selectedUser.value.id}/status`, { status: newStatus })
+
+    toast.info(`Đã cập nhật trạng thái thành ${newStatus}`)
+
+    confirmDialog.value = false
+    fetchUsers() // Làm mới danh sách user
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toast.error('Cập nhật trạng thái thất bại')
+  }
 }
 
 onMounted(fetchUsers)

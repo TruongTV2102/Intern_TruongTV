@@ -61,6 +61,7 @@ export const getUsersSchema = {
     type: "object",
     properties: {
       email: { type: "string" },
+      status: { type: "string" },
       page: { type: "string", default: 1 },
       limit: { type: "string", default: 8 },
       sortBy: { type: "string" },

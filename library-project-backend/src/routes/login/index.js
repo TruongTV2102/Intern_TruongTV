@@ -9,10 +9,10 @@ export default async function loginRoutes(fastify) {
     const user = await findUser(email);
     if (!user) throw new Error("Email hoặc mật khẩu không đúng");
 
-    if (user.delete_user) throw new Error("Tài khoản đã bị xóa");
+    if (user.status === "Deleted") throw new Error("Tài khoản đã bị xóa");
 
     // Kiểm tra nếu tài khoản bị vô hiệu hóa
-    if (!user.is_active)
+    if (user.status === "Inactive")
       throw new Error("Tài khoản của bạn chưa được kích hoạt");
 
     // So sánh mật khẩu nhập vào với mật khẩu đã hash trong DB

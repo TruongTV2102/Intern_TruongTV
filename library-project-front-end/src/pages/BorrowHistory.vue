@@ -12,7 +12,7 @@
       bordered
       :rows="borrowHistory"
       :columns="columns"
-      row-key="book_id"
+      row-key="id"
       virtual-scroll
       :rows-per-page-options="[0]"
       v-model:pagination="pagination"

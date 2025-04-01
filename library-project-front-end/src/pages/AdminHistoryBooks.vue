@@ -46,40 +46,6 @@
           />
         </q-td>
       </template>
-
-      <template v-slot:body-cell-action="props">
-        <q-td :props="props">
-          <q-badge :color="statusColors[props.row.status]">{{
-            getStatusLabel(props.row.status)
-          }}</q-badge>
-        </q-td>
-      </template>
-
-      <template v-slot:body-cell-actions="props">
-        <q-td :props="props">
-          <template v-if="props.row.status === 'Pending'">
-            <q-btn color="green" label="Duyệt" dense @click="updateStatus(props.row, 'Approved')" />
-            <q-btn
-              color="red"
-              label="Từ chối"
-              dense
-              class="tw-ml-2"
-              @click="updateStatus(props.row, 'Rejected')"
-            />
-          </template>
-
-          <template v-else-if="props.row.status === 'Approved'">
-            <q-btn color="blue" label="Trả sách" dense @click="handleReturnBook(props.row)" />
-            <q-btn
-              color="red"
-              label="Mất sách"
-              dense
-              class="tw-ml-2"
-              @click="updateStatus(props.row, 'Lost')"
-            />
-          </template>
-        </q-td>
-      </template>
     </q-table>
 
     <!-- Phân trang -->
@@ -98,7 +64,6 @@ import { api } from 'src/api'
 import BookSearchBar from 'src/components/BookSearchBar.vue'
 import PaginationPage from 'src/components/PaginationPage.vue'
 import { formatDate } from 'src/utils/dateUtils'
-import { toast } from 'src/plugins/toast'
 
 const borrowHistory = ref([])
 const total = ref(0)
@@ -112,6 +77,8 @@ const columns = [
   { name: 'image', label: 'Ảnh', align: 'center', field: 'cover_image_url', sortable: false },
   { name: 'title', label: 'Tên sách', align: 'left', field: 'title', sortable: true },
   { name: 'user', label: 'Người mượn', align: 'left', field: 'user_name', sortable: true },
+  { name: 'email', label: 'Email', align: 'left', field: 'email', sortable: true },
+
   {
     name: 'borrow_date',
     label: 'Ngày mượn',
@@ -141,10 +108,10 @@ const columns = [
     sortable: true,
   },
   { name: 'status', label: 'Trạng thái', align: 'center', field: 'status', sortable: true },
-  { name: 'actions', label: 'Hành động', align: 'center', field: 'actions', sortable: false },
 ]
 
 const statusOptions = [
+  { label: 'Tất cả', value: '' },
   { label: 'Đang chờ', value: 'Pending' },
   { label: 'Đã duyệt', value: 'Approved' },
   { label: 'Đã trả', value: 'Returned' },
@@ -179,41 +146,19 @@ const updateSearch = (newSearch) => {
   fetchBorrowHistory()
 }
 
-const updateStatus = async (book, status) => {
-  console.log('ID nhận được:', book.id)
-  try {
-    await api.put(`/approve-borrow/${book.id}`, { status })
-    fetchBorrowHistory()
-  } catch (error) {
-    toast.error(error.response?.data?.message)
-    console.error('Lỗi khi cập nhật trạng thái:', error)
-  }
-}
-
 const calculateFine = (row) => {
   if (!row.due_date) return 0
-  const dueDate = new Date(row.due_date)
-  const now = new Date()
-  if (now <= dueDate) return 0
-  const hoursLate = Math.ceil((now - dueDate) / (1000 * 60 * 60))
-  console.log(1, hoursLate)
-  console.log(hoursLate * 500)
 
+  const dueDate = new Date(row.due_date)
+  const returnDate = row.return_date ? new Date(row.return_date) : new Date()
+
+  if (returnDate <= dueDate) return 0
+
+  const hoursLate = Math.ceil((returnDate - dueDate) / (1000 * 60 * 60))
   return hoursLate * 500
 }
 
 const formatCurrency = (amount) => amount.toLocaleString('vi-VN') + ' đ'
-
-const handleReturnBook = async (book) => {
-  const fineAmount = calculateFine(book)
-  console.log('sách', book)
-  try {
-    await api.put(`/approve-borrow/${book.id}`, { status: 'Returned', fine: fineAmount })
-    fetchBorrowHistory()
-  } catch (error) {
-    console.error('Lỗi khi cập nhật trạng thái:', error)
-  }
-}
 
 const updateStatusFilter = (status) => {
   search.value.status = status

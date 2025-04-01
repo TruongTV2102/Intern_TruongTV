@@ -30,4 +30,5 @@ export const API_ROUTES = {
   IMPORT_CSV: '/books/import',
   USERS: '/users',
   EACH_USERS: (id) => `/users/${id}`,
+  DELETE_USER: (id) => `/users/${id}/delete`,
 }

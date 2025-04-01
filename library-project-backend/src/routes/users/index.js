@@ -54,8 +54,16 @@ export default async function userRoutes(fastify) {
     },
     async (req, reply) => {
       console.log("Query params:", req.query);
-      const { email, page, limit, sortBy, descending } = req.query || {}; // Tránh lỗi undefined
-      const result = await getUsers({ email, page, limit, sortBy, descending });
+      const { email, status, page, limit, sortBy, descending } =
+        req.query || {}; // Tránh lỗi undefined
+      const result = await getUsers({
+        email,
+        status,
+        page,
+        limit,
+        sortBy,
+        descending,
+      });
 
       return reply.send(result);
     }
@@ -97,37 +105,85 @@ export default async function userRoutes(fastify) {
   );
 
   //Cập nhật status user
-  fastify.put("/users/status/:id", async (request, reply) => {
-    const { id } = request.params;
-    const { is_active } = request.body;
-
-    // Kiểm tra id có tồn tại không
-    const user = await db("users").where({ id }).first();
-    if (!user) {
-      return reply.code(404).send({ error: "Người dùng không tồn tại" });
-    }
-
-    // Cập nhật trạng thái is_active
-    await db("users").where({ id }).update({ is_active });
-
-    return reply.send({
-      message: "Cập nhật trạng thái thành công",
-      is_active,
-    });
-  });
-
-  // Xóa người dùng
-  fastify.delete(
-    "/users/:id",
+  fastify.put(
+    "/users/status/:id",
     {
       preValidation: [authenticate, authorizeAdmin],
     },
-    async (req, reply) => {
-      const { id } = req.params;
-      const deletedRows = await deleteUser(id);
-      if (!deletedRows) throw new Error("Người dùng không tồn tại");
+    async (request, reply) => {
+      const { id } = request.params;
+      const { status } = request.body;
 
-      return reply.send({ message: "Xóa người dùng thành công" });
+      // Kiểm tra id có tồn tại không
+      const user = await db("users").where({ id }).first();
+      if (!user) {
+        return reply.code(404).send({ error: "Người dùng không tồn tại" });
+      }
+
+      // Cập nhật trạng thái status
+      await db("users").where({ id }).update({ status });
+
+      return reply.send({
+        message: "Cập nhật trạng thái thành công",
+        status,
+      });
+    }
+  );
+
+  // Xóa người dùng
+  fastify.put(
+    "/users/:id/delete",
+    {
+      preValidation: [authenticate, authorizeAdmin],
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+      const result = await db("users")
+        .where({ id })
+        .update({ status: "Deleted" });
+
+      if (result) {
+        return reply.send({
+          message: "User đã bị xóa",
+          success: true,
+        });
+      } else {
+        return reply
+          .code(404)
+          .send({ message: "User not found", success: false });
+      }
+    }
+  );
+
+  //Kích hoạt/ Vô hiệu hóa tài khoản
+
+  fastify.put(
+    "/users/:id/status",
+    {
+      preValidation: [authenticate, authorizeAdmin],
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+      const { status } = request.body; // "Active" hoặc "Inactive"
+
+      if (!["Active", "Inactive"].includes(status)) {
+        return reply
+          .code(400)
+          .send({ message: "Trạng thái không hợp lệ", success: false });
+      }
+
+      const result = await db("users").where({ id }).update({ status });
+
+      if (result) {
+        return reply.send({
+          message: `User đã được cập nhật thành ${status}`,
+          success: true,
+        });
+      } else {
+        return reply
+          .code(404)
+          .send({ message: "User không tồn tại", success: false });
+      }
     }
   );
 

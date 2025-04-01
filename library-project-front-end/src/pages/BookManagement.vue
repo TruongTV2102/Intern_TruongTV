@@ -2,7 +2,7 @@
   <q-page class="tw-p-4">
     <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Quản lý sách</h1>
 
-    <BookSearchBar @search="updateSearch" />
+    <BookSearchBar ref="searchBar" @search="updateSearch" />
 
     <input ref="fileInput" type="file" @change="handleFileUpload" accept=".csv" class="tw-hidden" />
     <div class="tw-flex tw-justify-between tw-mb-4">
@@ -31,13 +31,6 @@
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn flat icon="edit" @click="editBook(props.row)" color="blue" dense />
-          <q-btn
-            flat
-            icon="history"
-            @click="viewBorrowHistory(props.row.id)"
-            color="orange"
-            dense
-          />
           <q-btn flat icon="delete" @click="deleteBook(props.row.id)" color="red" dense />
         </q-td>
       </template>
@@ -124,47 +117,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Xem lịch sử -->
-    <q-dialog v-model="showHistoryDialog">
-      <q-card class="tw-w-[800px] tw-p-4">
-        <q-card-section>
-          <h2 class="tw-text-lg tw-font-bold">Lịch sử mượn sách</h2>
-        </q-card-section>
-        <q-card-section>
-          <q-table
-            flat
-            bordered
-            :rows="borrowHistory"
-            :columns="historyColumns"
-            row-key="id"
-            :loading="loadingHistory"
-            ><template v-slot:header-cell-status>
-              <q-th>
-                Trạng thái
-                <q-btn flat dense icon="filter_list">
-                  <q-menu>
-                    <q-list>
-                      <q-item
-                        clickable
-                        v-for="option in statusOptions"
-                        :key="option.value"
-                        @click="updateStatusFilter(option.value)"
-                      >
-                        <q-item-section>{{ option.label }}</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-btn>
-              </q-th>
-            </template>
-          </q-table>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Đóng" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- Popup xác nhận thêm/sửa/xóa -->
     <q-dialog v-model="confirmDialog">
       <q-card class="tw-p-4">
@@ -194,6 +146,7 @@ import Papa from 'papaparse'
 
 const { selectedFile, previewUrl, handleFileChange, uploadImage } = useUploadImage()
 
+const searchBar = ref(null)
 const books = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -346,47 +299,6 @@ const deleteBook = async (id) => {
   })
 }
 
-const showHistoryDialog = ref(false)
-const borrowHistory = ref([])
-const loadingHistory = ref(false)
-
-const historyColumns = [
-  { name: 'user', label: 'Người mượn', align: 'left', field: 'name' },
-  { name: 'borrow_date', label: 'Ngày mượn', align: 'center', field: 'borrow_date' },
-  { name: 'due_date', label: 'Ngày trả dự kiến', align: 'center', field: 'due_date' },
-  { name: 'return_date', label: 'Ngày trả thực tế', align: 'center', field: 'return_date' },
-  { name: 'status', label: 'Trạng thái', align: 'center', field: 'status' },
-]
-
-const viewBorrowHistory = async (bookId) => {
-  showHistoryDialog.value = true
-  loadingHistory.value = true
-
-  try {
-    const res = await api.get(API_ROUTES.HISTORY_BOOK(bookId))
-    borrowHistory.value = res.data
-  } catch (error) {
-    console.error('Lỗi khi lấy lịch sử mượn:', error)
-  } finally {
-    loadingHistory.value = false
-  }
-}
-
-const statusOptions = [
-  { label: 'Tất cả', value: '' },
-  { label: 'Đang chờ', value: 'Pending' },
-  { label: 'Đã duyệt', value: 'Approved' },
-  { label: 'Đã trả', value: 'Returned' },
-  { label: 'Mất', value: 'Lost' },
-  { label: 'Bị từ chối', value: 'Rejected' },
-]
-
-const updateStatusFilter = (status) => {
-  search.value.status = status
-  page.value = 1
-  viewBorrowHistory()
-}
-
 const confirmDialog = ref(false)
 const confirmAction = ref(null)
 const confirmMessage = ref('')
@@ -463,5 +375,8 @@ const triggerFileInput = () => {
   fileInput.value.click() // Kích hoạt input file khi nhấn nút
 }
 
-onMounted(fetchBooks)
+onMounted(() => {
+  fetchBooks()
+  searchBar.value.setShowBooksFilter(true)
+})
 </script>

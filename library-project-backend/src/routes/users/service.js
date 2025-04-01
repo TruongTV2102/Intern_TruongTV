@@ -24,14 +24,17 @@ export async function createUser(userData) {
     birthday,
     phone,
     role: role || "user",
-    is_active: false,
+    status: "Inactive",
   });
 
   return newUserId;
 }
 
+//Lấy danh sách USER
+
 export async function getUsers({
   email,
+  status,
   page = 1,
   limit = 8,
   sortBy = "id",
@@ -40,12 +43,23 @@ export async function getUsers({
   const offset = (page - 1) * limit;
   const order = descending ? "desc" : "asc";
   console.log("ORDER", order);
+  console.log("Query status:", status);
 
   const usersQuery = db("users")
-    .select("id", "email", "name", "birthday", "phone", "is_active", "avatar")
+    .select(
+      "id",
+      "email",
+      "name",
+      "birthday",
+      "phone",
+      "status",
+      "avatar",
+      "created_at"
+    )
     .where("role", "user")
     .modify((query) => {
       if (email) query.whereILike("email", `%${email}%`);
+      if (status) query.where("status", status);
     })
     .orderBy(sortBy, order)
     .limit(limit)
@@ -55,6 +69,7 @@ export async function getUsers({
     .where("role", "user")
     .modify((query) => {
       if (email) query.whereILike("email", `%${email}%`);
+      if (status) query.where("status", status);
     })
     .count("id as total")
     .first();
